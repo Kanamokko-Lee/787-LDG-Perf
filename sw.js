@@ -1,5 +1,9 @@
 const CACHE_NAME = '787-perf-v1';
-const ASSETS = ['/', '/index.html', '/manifest.json'];
+const ASSETS = [
+    '/787-LDG-Perf/',
+    '/787-LDG-Perf/index.html',
+    '/787-LDG-Perf/manifest.json'
+];
 
 // インストール時にアプリ本体をキャッシュ
 self.addEventListener('install', e => {
