@@ -401,20 +401,39 @@ function renderTaf() {
 }
 
 // ================================================================
-// WIND CALC FROM TAF
+// WIND & OAT FROM TAF
 // ================================================================
-function calcWindFromTaf() {
+function applyTafToState() {
     const taf = TAF_CACHE[S.apt];
     if (!taf) return;
     const ai = activeLineIdx();
     if (ai < 0) return;
     const line = taf.lines[ai];
-    if (line.wdir === null || line.wspd === null) return;
-    const rwyDeg = parseInt(S.rwy.replace(/[LRC]/g,'')) * 10;
-    const diff = ((line.wdir - rwyDeg + 360) % 360);
-    const angle = diff > 180 ? diff - 360 : diff;
-    S.wind = Math.round(line.wspd * Math.cos(angle * Math.PI / 180));
+
+    // WIND: 向かい風成分を計算してセット
+    if (line.wdir !== null && line.wspd !== null && S.rwy) {
+        const rwyDeg = parseInt(S.rwy.replace(/[LRC]/g,'')) * 10;
+        const diff = ((line.wdir - rwyDeg + 360) % 360);
+        const angle = diff > 180 ? diff - 360 : diff;
+        S.wind = Math.round(line.wspd * Math.cos(angle * Math.PI / 180));
+    }
+
+    // OAT: FCST時刻に対応した気温をセット
+    if (taf.hourly_oat && taf.hourly_oat[S.fcst] !== undefined) {
+        S.oat = taf.hourly_oat[S.fcst];
+    } else if (taf.oat !== null && taf.oat !== undefined) {
+        S.oat = taf.oat;
+    }
+
+    // QNH: 現況値をセット（予報は取得していないため現況のみ）
+    if (S.fcst === 0 && taf.qnh !== null && taf.qnh !== undefined) {
+        S.qnh = inHg()
+            ? parseFloat((taf.qnh * 0.02953).toFixed(2))
+            : Math.round(taf.qnh);
+    }
 }
+
+function calcWindFromTaf() { applyTafToState(); }
 
 async function fetchAllTaf() {
     setStatus('FETCHING TAF...');
@@ -425,7 +444,13 @@ async function fetchAllTaf() {
         // data.tafs = { "HND": { icao, issued, raw }, ... }
         Object.entries(data.tafs || {}).forEach(([iata, t]) => {
             const parsed = parseTaf(t);
-            if (parsed) TAF_CACHE[iata] = parsed;
+            if (parsed) {
+                TAF_CACHE[iata] = parsed;
+                // 気温・気圧もキャッシュ
+                TAF_CACHE[iata].oat        = t.oat        ?? null;
+                TAF_CACHE[iata].qnh        = t.qnh        ?? null;
+                TAF_CACHE[iata].hourly_oat = t.hourly_oat ?? null;
+            }
         });
         save();
         setStatus('TAF UPDATED: ' + (data.updated || ''));
@@ -433,7 +458,7 @@ async function fetchAllTaf() {
         setStatus('TAF LOAD FAILED: ' + e.message);
     }
     renderTaf();
-    calcWindFromTaf();
+    applyTafToState();
     draw();
 }
 
@@ -446,7 +471,7 @@ function stepFcst(d) {
     S.fcst = Math.max(0, Math.min(max, S.fcst + d));
     updateFcstLabel();
     renderTaf();
-    calcWindFromTaf();
+    applyTafToState();
     draw();
 }
 function updateFcstLabel() {
@@ -532,13 +557,13 @@ function buildRwyList(isLoad) {
     }
     updateFcstLabel();
     renderTaf();
-    calcWindFromTaf();
+    applyTafToState();
     draw();
 }
 
 function onRwyChange() {
     S.rwy = document.getElementById('rwy').value;
-    calcWindFromTaf();
+    applyTafToState();
     draw();
 }
 
