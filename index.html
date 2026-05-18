@@ -472,33 +472,9 @@ function applyForecast() {
         }
     }
 
-    // TAF表示 → アクティブ行の風を取得（TAFのみ使用、open-meteoフォールバックなし）
-    const activeLine = renderTaf(state.apt, targetDay, targetHour);
-
-    const windDir = activeLine?.windDir ?? null;
-    const windSpd = activeLine?.windSpd ?? null;
-
-    // fc-wind-infoは非表示（TAFボックスに情報があるため不要）
+    // TAF表示のみ（風データ表示・RWY上書き・WIND計算はしない）
+    renderTaf(state.apt, targetDay, targetHour);
     windEl.innerText = '';
-
-    // RWY自動選択
-    if (windDir !== null) {
-        const best = getBestRwy(state.apt, windDir);
-        const rwySelect = document.getElementById('rwy-select');
-        if (rwySelect && rwySelect.value !== best) {
-            state.rwy = best;
-            rwySelect.value = best;
-        }
-    }
-
-    // WIND H/T 自動計算
-    if (windDir !== null && windSpd !== null && state.rwy) {
-        const rwyDeg = parseInt(state.rwy.replace(/[LRC]/g,'')) * 10;
-        const diff = ((windDir - rwyDeg + 360) % 360);
-        const angle = diff > 180 ? diff - 360 : diff;
-        // angle < 0 → headwind, > 0 → tailwind
-        state.wind = -Math.round(windSpd * Math.cos(angle * Math.PI / 180));
-    }
 }
 
 // ============================================================
@@ -693,15 +669,26 @@ function onAirportChange(isLoad=false) {
     if (isLoad && airportData[state.apt].r[state.rwy]) {
         rwySelect.value = state.rwy;
     } else {
-        const best = getBestRwy(state.apt, cache?.windDir ?? null);
+        // TAFキャッシュから風向きを取得してRWY自動選択
+        const taf = tafCache[state.apt];
+        const tafWind = taf?.groups?.find(g => g.windDir !== null);
+        const windDir = tafWind?.windDir ?? null;
+        const best = getBestRwy(state.apt, windDir);
         state.rwy = best; rwySelect.value = best;
     }
-    if (!isLoad) state.fcstOffsetHours = 0;
+    if (!isLoad) {
+        state.fcstOffsetHours = 0;
+        state.rwyManual = false;  // 空港変更時はフラグリセット
+    }
     applyForecast();
     updateDisplay();
 }
 
-function onRwyChange() { state.rwy=document.getElementById('rwy-select').value; updateDisplay(); }
+function onRwyChange() {
+    state.rwy = document.getElementById('rwy-select').value;
+    state.rwyManual = true;  // 手動変更フラグ
+    updateDisplay();
+}
 
 // ============================================================
 // ステップ
