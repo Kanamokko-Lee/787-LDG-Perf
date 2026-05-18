@@ -350,105 +350,89 @@ let tafCache = {};
 
 async function fetchTafForApt(icao) {
     const icao4 = icaoMap[icao] || icao;
-    // aviationweather.gov は no-cors不要、ただしtaf?ids=形式で取得
-    const urls = [
-        `https://aviationweather.gov/api/data/taf?ids=${icao4}&format=json&metar=false`,
-        `https://aviationweather.gov/cgi-bin/data/taf.php?ids=${icao4}&format=json`
-    ];
-    for (const url of urls) {
-        try {
-            const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
-            if (!res.ok) continue;
-            const data = await res.json();
-            if (!data || data.length === 0) continue;
-            const parsed = parseTaf(data[0]);
-            if (parsed && parsed.groups.length > 0) return parsed;
-        } catch(e) { continue; }
-    }
-    return null;
+    const url = `https://aviationweather.gov/api/data/taf?ids=${icao4}&format=json&metar=false`;
+    try {
+        const res = await fetch(url);
+        if (!res.ok) return null;
+        const data = await res.json();
+        if (!data || data.length === 0) return null;
+        return parseTaf(data[0]);
+    } catch(e) { return null; }
 }
 
 function parseTaf(taf) {
-    const rawText = (taf.rawTAF || taf.raw_text || taf.tafText || '').replace(/\r?\n/g,' ').replace(/\s+/g,' ').trim();
-    if (!rawText) return null;
-    const issueTime = taf.issueTime || taf.issue_time || taf.reportTime || '';
+    // RAWテキストを取得
+    const raw = (taf.rawTAF || taf.raw_text || taf.tafText || '').trim();
+    if (!raw) return null;
+    const issueTime = taf.issueTime || taf.issue_time || '';
 
-    // TAFをグループに分割して各行を生成
-    // 行の区切り: BECMG, TEMPO, FM, PROB の前で改行
-    const formatted = rawText
-        .replace(/ (BECMG|TEMPO|FM\d{6}|PROB\d{2})/g, '\n  $1')
+    // BECMG / TEMPO / FM / PROB の前で改行して行に分割
+    const formatted = raw
+        .replace(/\s+(BECMG|TEMPO|FM\d{6}|PROB\d{2}\s+TEMPO|PROB\d{2})\s+/g, '\n  $1 ')
         .trim();
 
-    const lines = formatted.split('\n');
-    const groups = [];
+    const lines = formatted.split('\n').map(l => l.trimEnd());
 
-    lines.forEach((line, lineIdx) => {
-        line = line.trim();
-        // 風情報を抽出（数値計算用）
-        const wm = line.match(/(\d{3}|VRB)(\d{2,3})(G(\d{2,3}))?KT/);
-        // °を除去した表示テキスト（風向はそのまま数字のみ）
-        const displayLine = line;
+    // 各行に時刻情報と風情報を付与
+    const groups = lines.map(line => {
+        const t = line.trim();
+        // 時刻抽出
+        const baseM  = t.match(/^\w{4}\s+\d{6}Z\s+(\d{2})(\d{2})\/\d{2}\d{2}/);
+        const becmgM = t.match(/^(BECMG|TEMPO)\s+(\d{2})(\d{2})\/(\d{2})(\d{2})/);
+        const fmM    = t.match(/^FM(\d{2})(\d{2})\d{2}/);
+        // 風抽出
+        const wm = t.match(/(\d{3}|VRB)(\d{2,3})(G\d{2,3})?KT/);
 
-        // 時刻グループを判定
-        let fromDay=null, fromHour=null, toDay=null;
-        const baseMatch = line.match(/^\w{4}\s+\d{6}Z\s+(\d{2})(\d{2})\/(\d{2})(\d{2})/);
-        const becmgMatch = line.match(/^(BECMG|TEMPO)\s+(\d{2})(\d{2})\/(\d{2})(\d{2})/);
-        const fmMatch = line.match(/^FM(\d{2})(\d{2})\d{2}/);
+        let fromDay=null, fromHour=null;
+        if (baseM)  { fromDay=parseInt(baseM[1]);  fromHour=parseInt(baseM[2]); }
+        if (becmgM) { fromDay=parseInt(becmgM[2]); fromHour=parseInt(becmgM[3]); }
+        if (fmM)    { fromDay=parseInt(fmM[1]);    fromHour=parseInt(fmM[2]); }
 
-        if (baseMatch) {
-            fromDay=parseInt(baseMatch[1]); fromHour=parseInt(baseMatch[2]);
-            toDay=parseInt(baseMatch[3]);
-        } else if (becmgMatch) {
-            fromDay=parseInt(becmgMatch[2]); fromHour=parseInt(becmgMatch[3]);
-            toDay=parseInt(becmgMatch[4]);
-        } else if (fmMatch) {
-            fromDay=parseInt(fmMatch[1]); fromHour=parseInt(fmMatch[2]);
-        }
-
-        groups.push({
-            lineIdx, displayLine,
-            fromDay, fromHour, toDay,
+        return {
+            text: line,
+            fromDay, fromHour,
             windDir: wm && wm[1]!=='VRB' ? parseInt(wm[1]) : null,
             windSpd: wm ? parseInt(wm[2]) : null,
-            windGust: wm && wm[4] ? parseInt(wm[4]) : null,
-        });
+        };
     });
 
-    return { raw: rawText, issueTime, groups };
+    return { raw, issueTime, groups };
 }
 
-// 現在のFCST時刻に該当するTAFグループのインデックスを返す
-function getActiveTafIndex(groups, targetUtcHour, targetUtcDay) {
-    let activeIdx = 0;
+function getActiveTafIndex(groups, targetDay, targetHour) {
+    let idx = 0;
     for (let i = 0; i < groups.length; i++) {
         const g = groups[i];
         if (g.fromDay === null) continue;
-        if (g.fromDay < targetUtcDay || (g.fromDay === targetUtcDay && g.fromHour <= targetUtcHour)) {
-            activeIdx = i;
+        if (g.fromDay < targetDay || (g.fromDay === targetDay && g.fromHour <= targetHour)) {
+            idx = i;
         }
     }
-    return activeIdx;
+    return idx;
 }
 
-function renderTaf(icao, targetUtcHour, targetUtcDay) {
-    const box = document.getElementById('taf-box');
+function renderTaf(icao, targetDay, targetHour) {
+    const box    = document.getElementById('taf-box');
     const linesEl = document.getElementById('taf-lines');
     const labelEl = document.getElementById('taf-label');
     const taf = tafCache[icao];
+
     if (!taf || !taf.groups || taf.groups.length === 0) {
         box.style.display = 'none';
         return null;
     }
+
     box.style.display = 'block';
     const icao4 = icaoMap[icao] || icao;
-    labelEl.innerText = `TAF ${icao4}  issued: ${taf.issueTime || '-'}`;
+    labelEl.innerText = `TAF ${icao4}  ${taf.issueTime || ''}`;
 
-    const activeIdx = getActiveTafIndex(taf.groups, targetUtcHour, targetUtcDay);
+    const activeIdx = getActiveTafIndex(taf.groups, targetDay, targetHour);
+
     linesEl.innerHTML = '';
     taf.groups.forEach((g, i) => {
         const div = document.createElement('div');
         div.className = 'taf-line' + (i === activeIdx ? ' taf-active' : '');
-        div.innerText = g.displayLine;
+        div.innerText = g.text;
         linesEl.appendChild(div);
     });
 
@@ -456,61 +440,48 @@ function renderTaf(icao, targetUtcHour, targetUtcDay) {
 }
 
 // ============================================================
-// applyForecast（TAF連動・WIND自動計算）
+// applyForecast（TAF表示 + OAT/WIND反映）
 // ============================================================
 function applyForecast() {
-    const el = document.getElementById('fcst-time-val');
+    const el     = document.getElementById('fcst-time-val');
     const windEl = document.getElementById('fc-wind-info');
-    const cache = weatherCache[state.apt];
+    const cache  = weatherCache[state.apt];
 
-    // 現在のUTC時刻
+    // 対象UTC時刻
     const nowUtc = new Date();
-
-    // 対象時刻を決定
     const targetUtc = new Date(nowUtc);
-    targetUtc.setUTCHours(nowUtc.getUTCHours() + state.fcstOffsetHours);
-    targetUtc.setUTCMinutes(0,0,0);
-    const targetHour = targetUtc.getUTCHours();
+    targetUtc.setUTCHours(nowUtc.getUTCHours() + state.fcstOffsetHours, 0, 0, 0);
     const targetDay  = targetUtc.getUTCDate();
+    const targetHour = targetUtc.getUTCHours();
 
-    let windDir = null;
-    let windSpd = null;
-
+    // FCST GMT表示 & OAT更新
     if (state.fcstOffsetHours === 0) {
         el.innerText = 'NOW';
         if (cache) {
-            state.oat = cache.oat;
-            state.qnh = isinHg() ? parseFloat((cache.qnh*0.02953).toFixed(2)) : Math.round(cache.qnh);
-            windDir = cache.windDir;
-            windSpd = cache.windSpd;  // kt単位
+            state.oat  = cache.oat;
+            state.qnh  = isinHg() ? parseFloat((cache.qnh*0.02953).toFixed(2)) : Math.round(cache.qnh);
         }
     } else {
         const fc = cache?.forecast?.[state.fcstOffsetHours];
         if (fc) {
             state.oat = Math.round(fc.oat);
-            windDir = fc.windDir;
-            windSpd = fc.windSpd;  // kt単位
-            const t = new Date(fc.time + ':00Z');
-            const hh = String(t.getUTCHours()).padStart(2,'0');
-            el.innerText = hh+':00Z';
+            const hh = String(targetUtc.getUTCHours()).padStart(2,'0');
+            el.innerText = hh + ':00Z';
         } else {
-            el.innerText = '+'+state.fcstOffsetHours+'h';
+            el.innerText = '+' + state.fcstOffsetHours + 'h';
         }
     }
 
-    // TAF表示・ハイライト → アクティブグループの風を優先使用
-    const activeTafGroup = renderTaf(state.apt, targetHour, targetDay);
-    if (activeTafGroup && activeTafGroup.windDir !== null) {
-        windDir = activeTafGroup.windDir;
-        windSpd = activeTafGroup.windSpd;
-        windEl.innerText = `TAF: ${activeTafGroup.windStr}`;
-    } else if (windDir !== null) {
-        windEl.innerText = `WIND ${Math.round(windDir).toString().padStart(3,'0')}°${windSpd ? ' '+windSpd+'KT' : ''}`;
-    } else {
-        windEl.innerText = '';
-    }
+    // TAF表示 → アクティブ行の風を取得（TAFのみ使用、open-meteoフォールバックなし）
+    const activeLine = renderTaf(state.apt, targetDay, targetHour);
 
-    // RWY自動更新
+    const windDir = activeLine?.windDir ?? null;
+    const windSpd = activeLine?.windSpd ?? null;
+
+    // fc-wind-infoは非表示（TAFボックスに情報があるため不要）
+    windEl.innerText = '';
+
+    // RWY自動選択
     if (windDir !== null) {
         const best = getBestRwy(state.apt, windDir);
         const rwySelect = document.getElementById('rwy-select');
@@ -520,15 +491,13 @@ function applyForecast() {
         }
     }
 
-    // WIND（headwind/tailwind）自動計算
+    // WIND H/T 自動計算
     if (windDir !== null && windSpd !== null && state.rwy) {
         const rwyDeg = parseInt(state.rwy.replace(/[LRC]/g,'')) * 10;
-        let diff = (windDir - rwyDeg + 360) % 360;
-        if (diff > 180) diff = diff - 360;
-        // diff > 0 = tailwind, diff < 0 = headwind
-        const hwComp = Math.round(windSpd * Math.cos(diff * Math.PI / 180));
-        // hwComp > 0 = headwind, < 0 = tailwind
-        state.wind = hwComp; // 正=H、負=T
+        const diff = ((windDir - rwyDeg + 360) % 360);
+        const angle = diff > 180 ? diff - 360 : diff;
+        // angle < 0 → headwind, > 0 → tailwind
+        state.wind = -Math.round(windSpd * Math.cos(angle * Math.PI / 180));
     }
 }
 
@@ -652,8 +621,8 @@ async function fetchAllWeather() {
     const lons = icaos.map(k=>airportData[k].lon).join(',');
     try {
         const url = `https://api.open-meteo.com/v1/forecast?latitude=${lats}&longitude=${lons}`
-            + `&current=temperature_2m,pressure_msl,wind_direction_10m,wind_speed_10m`
-            + `&hourly=temperature_2m,wind_direction_10m,wind_speed_10m&forecast_days=2&timezone=UTC`;
+            + `&current=temperature_2m,pressure_msl`
+            + `&hourly=temperature_2m&forecast_days=2&timezone=UTC`;
         const res = await fetch(url);
         const data = await res.json();
         const arr = Array.isArray(data) ? data : [data];
@@ -668,29 +637,18 @@ async function fetchAllWeather() {
             const d = arr[i] || arr[0];
             const curOat  = Math.round(d?.current?.temperature_2m ?? 15);
             const curQnh  = d?.current?.pressure_msl ?? 1013;
-            const curWdir = d?.current?.wind_direction_10m ?? null;
-            const curWspd = d?.current?.wind_speed_10m ?? null; // km/h → kt変換は後で
             const times   = d?.hourly?.time || [];
             const oats    = d?.hourly?.temperature_2m || [];
-            const wdirs   = d?.hourly?.wind_direction_10m || [];
-            const wspds   = d?.hourly?.wind_speed_10m || [];
             const si = times.findIndex(t => t >= nowHourStr);
             const forecast = [];
             for (let j=0; j<24; j++) {
                 const idx = si+j;
                 if (idx>=0 && idx<times.length) forecast.push({
-                    time: times[idx], oat: oats[idx],
-                    windDir: wdirs[idx],
-                    windSpd: wspds[idx] ? Math.round(wspds[idx] * 0.539957) : 0  // km/h→kt
+                    time: times[idx],
+                    oat: oats[idx],
                 });
             }
-            // open-meteoの風速はkm/h単位なのでktに変換
-            weatherCache[icao] = {
-                oat: curOat, qnh: curQnh,
-                windDir: curWdir,
-                windSpd: curWspd ? Math.round(curWspd * 0.539957) : null,
-                forecast
-            };
+            weatherCache[icao] = { oat:curOat, qnh:curQnh, forecast };
         });
         localStorage.setItem('weather_cache_v2', JSON.stringify(weatherCache));
         statusEl.innerText = "WEATHER UPDATED - FETCHING TAF...";
