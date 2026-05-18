@@ -27,8 +27,8 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
     const url = new URL(e.request.url);
 
-    // 天気APIはネットワーク優先（失敗してもOK、localStorageのキャッシュを使う）
-    if (url.hostname === 'api.open-meteo.com') {
+    // 天気API・TAF APIはネットワーク優先（失敗してもOK）
+    if (url.hostname === 'api.open-meteo.com' || url.hostname === 'aviationweather.gov') {
         e.respondWith(fetch(e.request).catch(() => new Response('', { status: 503 })));
         return;
     }
