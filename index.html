@@ -349,20 +349,29 @@ let tafCache = {};
 
 async function fetchTafForApt(icao) {
     const icao4 = icaoMap[icao] || icao;
-    try {
-        const url = `https://aviationweather.gov/api/data/taf?ids=${icao4}&format=json`;
-        const res = await fetch(url);
-        const data = await res.json();
-        if (!data || data.length === 0) return null;
-        const taf = data[0];
-        return parseTaf(taf);
-    } catch(e) { return null; }
+    // aviationweather.gov は no-cors不要、ただしtaf?ids=形式で取得
+    const urls = [
+        `https://aviationweather.gov/api/data/taf?ids=${icao4}&format=json&metar=false`,
+        `https://aviationweather.gov/cgi-bin/data/taf.php?ids=${icao4}&format=json`
+    ];
+    for (const url of urls) {
+        try {
+            const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+            if (!res.ok) continue;
+            const data = await res.json();
+            if (!data || data.length === 0) continue;
+            const parsed = parseTaf(data[0]);
+            if (parsed && parsed.groups.length > 0) return parsed;
+        } catch(e) { continue; }
+    }
+    return null;
 }
 
 function parseTaf(taf) {
-    // aviationweather.gov JSON形式のTAFをパース
-    const rawText = taf.rawTAF || taf.raw_text || '';
-    const issueTime = taf.issueTime || taf.issue_time || '';
+    // aviationweather.gov JSON: rawTAF または raw_text
+    const rawText = (taf.rawTAF || taf.raw_text || taf.tafText || '').replace(/\n/g,' ').replace(/\s+/g,' ').trim();
+    if (!rawText) return null;
+    const issueTime = taf.issueTime || taf.issue_time || taf.reportTime || '';
     const groups = [];
 
     // 発行時刻と有効期間をヘッダー行として追加
@@ -504,13 +513,14 @@ function applyForecast() {
             state.oat = cache.oat;
             state.qnh = isinHg() ? parseFloat((cache.qnh*0.02953).toFixed(2)) : Math.round(cache.qnh);
             windDir = cache.windDir;
-            windSpd = cache.windSpd || null;
+            windSpd = cache.windSpd;  // kt単位
         }
     } else {
         const fc = cache?.forecast?.[state.fcstOffsetHours];
         if (fc) {
             state.oat = Math.round(fc.oat);
             windDir = fc.windDir;
+            windSpd = fc.windSpd;  // kt単位
             const t = new Date(fc.time + ':00Z');
             const hh = String(t.getUTCHours()).padStart(2,'0');
             el.innerText = hh+':00Z';
@@ -673,8 +683,8 @@ async function fetchAllWeather() {
     const lons = icaos.map(k=>airportData[k].lon).join(',');
     try {
         const url = `https://api.open-meteo.com/v1/forecast?latitude=${lats}&longitude=${lons}`
-            + `&current=temperature_2m,pressure_msl,wind_direction_10m`
-            + `&hourly=temperature_2m,wind_direction_10m&forecast_days=2&timezone=UTC`;
+            + `&current=temperature_2m,pressure_msl,wind_direction_10m,wind_speed_10m`
+            + `&hourly=temperature_2m,wind_direction_10m,wind_speed_10m&forecast_days=2&timezone=UTC`;
         const res = await fetch(url);
         const data = await res.json();
         const arr = Array.isArray(data) ? data : [data];
@@ -690,16 +700,28 @@ async function fetchAllWeather() {
             const curOat  = Math.round(d?.current?.temperature_2m ?? 15);
             const curQnh  = d?.current?.pressure_msl ?? 1013;
             const curWdir = d?.current?.wind_direction_10m ?? null;
+            const curWspd = d?.current?.wind_speed_10m ?? null; // km/h → kt変換は後で
             const times   = d?.hourly?.time || [];
             const oats    = d?.hourly?.temperature_2m || [];
             const wdirs   = d?.hourly?.wind_direction_10m || [];
+            const wspds   = d?.hourly?.wind_speed_10m || [];
             const si = times.findIndex(t => t >= nowHourStr);
             const forecast = [];
             for (let j=0; j<24; j++) {
                 const idx = si+j;
-                if (idx>=0 && idx<times.length) forecast.push({time:times[idx], oat:oats[idx], windDir:wdirs[idx]});
+                if (idx>=0 && idx<times.length) forecast.push({
+                    time: times[idx], oat: oats[idx],
+                    windDir: wdirs[idx],
+                    windSpd: wspds[idx] ? Math.round(wspds[idx] * 0.539957) : 0  // km/h→kt
+                });
             }
-            weatherCache[icao] = { oat:curOat, qnh:curQnh, windDir:curWdir, forecast };
+            // open-meteoの風速はkm/h単位なのでktに変換
+            weatherCache[icao] = {
+                oat: curOat, qnh: curQnh,
+                windDir: curWdir,
+                windSpd: curWspd ? Math.round(curWspd * 0.539957) : null,
+                forecast
+            };
         });
         localStorage.setItem('weather_cache_v2', JSON.stringify(weatherCache));
         statusEl.innerText = "WEATHER UPDATED - FETCHING TAF...";
