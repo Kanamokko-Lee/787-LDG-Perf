@@ -43,9 +43,10 @@
         .top-controls { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 10px; flex-wrap: wrap; }
         .forecast-box { display: flex; align-items: center; gap: 6px; }
         .forecast-box label { color: var(--text-grey); font-size: 10px; font-weight: bold; white-space: nowrap; }
-        .fc-time-box { background: #1a1a1a; border: 1px solid var(--border-color); display: flex; align-items: center; border-radius: 4px; height: 36px; gap: 4px; padding: 3px; box-sizing: border-box; }
-        .fc-time-box button { background: #2a2a2a; border: none; color: white; width: 26px; height: 100%; cursor: pointer; font-size: 14px; border-radius: 3px; }
-        .fc-time-val { color: var(--accent-cyan); font-weight: bold; font-family: 'Consolas', monospace; font-size: 14px; width: 62px; text-align: center; }
+        .fc-time-box { background: #1a1a1a; border: 1px solid var(--border-color); display: flex; align-items: center; border-radius: 4px; height: 40px; gap: 4px; padding: 4px; box-sizing: border-box; }
+        .fc-time-box button { background: #2a2a2a; border: none; color: white; width: 36px; height: 100%; cursor: pointer; font-size: 16px; border-radius: 3px; font-weight: bold; }
+        .fc-time-val { color: var(--accent-cyan); font-weight: bold; font-family: 'Consolas', monospace; font-size: 15px; width: 66px; text-align: center; }
+        .fc-wind-info { font-size: 11px; color: var(--text-grey); text-align: center; margin-bottom: 6px; font-family: 'Consolas', monospace; min-height: 14px; }
 
         .unit-btn { background: #2a2a2a; border: 1px solid var(--border-color); color: var(--text-grey); border-radius: 4px; padding: 0 8px; height: 36px; cursor: pointer; font-size: 11px; font-weight: bold; white-space: nowrap; }
         .unit-btn.active { border-color: var(--accent-cyan); color: var(--accent-cyan); background: var(--btn-active); }
@@ -96,9 +97,11 @@
                     <button onclick="stepFcst(-1)">-</button>
                     <div class="fc-time-val" id="fcst-time-val">NOW</div>
                     <button onclick="stepFcst(1)">+</button>
+                    <button onclick="stepFcst(3)">+3</button>
                 </div>
             </div>
         </div>
+        <div class="fc-wind-info" id="fc-wind-info"></div>
         <div id="weather-status" class="weather-info">READY</div>
 
         <div class="input-row-container">
@@ -321,25 +324,55 @@ function stepFcst(dir) {
 
 function applyForecast() {
     const el = document.getElementById('fcst-time-val');
+    const windEl = document.getElementById('fc-wind-info');
     const cache = weatherCache[state.apt];
+
+    let windDir = null;
+
     if (state.fcstOffsetHours === 0) {
         el.innerText = 'NOW';
         if (cache) {
             state.oat = cache.oat;
             const hpa = cache.qnh;
             state.qnh = isinHg() ? parseFloat((hpa*0.02953).toFixed(2)) : Math.round(hpa);
+            windDir = cache.windDir;
+            if (windDir !== null) {
+                windEl.innerText = `WIND ${Math.round(windDir).toString().padStart(3,'0')}° (current obs)`;
+            } else {
+                windEl.innerText = '';
+            }
+        } else {
+            windEl.innerText = '';
         }
     } else {
         const fc = cache?.forecast?.[state.fcstOffsetHours];
         if (fc) {
             state.oat = Math.round(fc.oat);
-            // 予報時刻をGMT表示
+            windDir = fc.windDir;
+            // 時刻をGMT表示
             const t = new Date(fc.time + ':00Z');
             const hh = String(t.getUTCHours()).padStart(2,'0');
             const mm = String(t.getUTCMinutes()).padStart(2,'0');
             el.innerText = hh+':'+mm+'Z';
+            // 風情報表示
+            if (windDir !== null && windDir !== undefined) {
+                windEl.innerText = `WIND ${Math.round(windDir).toString().padStart(3,'0')}° @ ${fc.time.slice(11,16)}Z`;
+            } else {
+                windEl.innerText = el.innerText;
+            }
         } else {
             el.innerText = '+'+state.fcstOffsetHours+'h';
+            windEl.innerText = '';
+        }
+    }
+
+    // 予報風向きに連動してRWYを自動更新（手動変更していない場合）
+    if (windDir !== null) {
+        const best = getBestRwy(state.apt, windDir);
+        const rwySelect = document.getElementById('rwy-select');
+        if (rwySelect && rwySelect.value !== best) {
+            state.rwy = best;
+            rwySelect.value = best;
         }
     }
 }
