@@ -530,9 +530,34 @@ async function fetchAllTaf() {
         if (r.status === 'fulfilled' && r.value) tafCache[icaos[i]] = r.value;
     });
     localStorage.setItem('taf_cache_v2', JSON.stringify(tafCache));
-    if (statusEl) statusEl.innerText = 'TAF UPDATED';
+    calcWindFromTaf();
     renderTaf();
     updateDisplay();
+}
+
+// ============================================================
+// 向かい風計算（TAFのアクティブ行から）
+// ============================================================
+function calcWindFromTaf() {
+    const taf = tafCache[state.apt];
+    if (!taf || !taf.groups) return;
+    const activeIdx = getActiveTafIndex(taf.groups);
+    const g = taf.groups[activeIdx];
+    if (!g) return;
+
+    // 風情報をテキストから抽出
+    const wm = g.text.match(/(\d{3}|VRB)(\d{2,3})(G\d{2,3})?KT/);
+    if (!wm || wm[1] === 'VRB') return;
+
+    const windDir = parseInt(wm[1]);
+    const windSpd = parseInt(wm[2]);
+    if (!state.rwy) return;
+
+    const rwyDeg = parseInt(state.rwy.replace(/[LRC]/g,'')) * 10;
+    const diff = ((windDir - rwyDeg + 360) % 360);
+    const angle = diff > 180 ? diff - 360 : diff;
+    // cos: headwind=正、tailwind=負 → state.windは正=H、負=T
+    state.wind = Math.round(windSpd * Math.cos(angle * Math.PI / 180));
 }
 
 // ============================================================
@@ -564,6 +589,7 @@ function onAirportChange(isLoad=false) {
 function onRwyChange() {
     state.rwy = document.getElementById('rwy-select').value;
     state.rwyManual = true;
+    calcWindFromTaf();
     updateDisplay();
 }
 
