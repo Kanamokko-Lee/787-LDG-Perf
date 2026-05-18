@@ -10,313 +10,283 @@
     <title>787 Perf Tool Pro</title>
     <style>
         :root {
-            --bg-black: #0a0a0a; --card-bg: #121212; --border-color: #333;
-            --accent-cyan: #00b4d8; --value-green: #00ff41; --text-grey: #a0a0a0;
-            --btn-active: #004d4d; --caution-red: #ff4d4d;
-            --alert-bg: #441111; --alert-text: #ff9999;
+            --bg: #0a0a0a; --card: #121212; --border: #333;
+            --cyan: #00b4d8; --green: #00ff41; --grey: #a0a0a0;
+            --active: #004d4d; --red: #ff4d4d;
+            --alert-bg: #441111; --alert-txt: #ff9999;
         }
-        body { background-color: var(--bg-black); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 10px; display: flex; justify-content: center; }
-        .main-container { display: flex; gap: 12px; width: 100%; max-width: 1150px; }
-        @media (max-width: 700px) { .main-container { flex-direction: column; align-items: center; } }
+        * { box-sizing: border-box; }
+        body { background: var(--bg); color: #fff; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 10px; display: flex; justify-content: center; }
+        .wrap { display: flex; gap: 12px; width: 100%; max-width: 1150px; }
+        @media (max-width: 700px) { .wrap { flex-direction: column; } }
 
-        .panel { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 15px; flex: 1; min-width: 0; box-sizing: border-box; }
-        h2 { color: var(--accent-cyan); font-size: 13px; margin: 0 0 12px 0; border-bottom: 1px solid var(--border-color); padding-bottom: 5px; text-transform: uppercase; }
+        /* パネル */
+        .panel { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 14px; flex: 1; min-width: 0; }
+        h2 { color: var(--cyan); font-size: 12px; margin: 0 0 10px; border-bottom: 1px solid var(--border); padding-bottom: 4px; text-transform: uppercase; letter-spacing: 1px; }
 
-        .input-row-container { display: flex; flex-direction: column; gap: 8px; }
-        .input-pair-row { display: flex; justify-content: space-between; align-items: center; gap: 20px; height: 40px; }
-        .left-item, .right-item { display: flex; align-items: center; gap: 10px; flex: 1; }
-        .left-item { justify-content: flex-end; }
-        .right-item { justify-content: flex-start; }
-        .left-item label { width: 60px; text-align: right; color: var(--text-grey); font-size: 11px; font-weight: bold; }
-        .right-item label { width: 80px; text-align: left; color: var(--text-grey); font-size: 11px; font-weight: bold; }
+        /* 上部コントロール */
+        .top-row { display: flex; align-items: center; justify-content: center; gap: 14px; margin-bottom: 10px; flex-wrap: wrap; }
+        .seg { display: flex; border: 1px solid var(--border); border-radius: 4px; overflow: hidden; width: 260px; height: 40px; }
+        .seg div { flex: 1; text-align: center; line-height: 40px; background: #1a1a1a; cursor: pointer; font-size: 13px; font-weight: bold; }
+        .seg div.on { box-shadow: inset 0 0 0 2px var(--cyan); color: var(--green); background: var(--active); }
 
-        .input-box { background: #1a1a1a; border: 1px solid var(--border-color); display: flex; align-items: center; border-radius: 4px; width: 140px; height: 36px; overflow: hidden; gap: 5px; padding: 4px; box-sizing: border-box; }
-        .wide-box { width: 210px; }
-        .input-box button { background: #2a2a2a; border: none; color: white; width: 28px; height: 100%; cursor: pointer; font-size: 15px; border-radius: 3px; flex-shrink: 0; }
-        .input-box .val { color: var(--value-green); font-weight: bold; font-family: 'Consolas', monospace; font-size: 18px; flex: 1; text-align: center; min-width: 0; }
+        /* FCST GMT */
+        .fcst-wrap { display: flex; align-items: center; gap: 6px; }
+        .fcst-wrap span { color: var(--grey); font-size: 10px; font-weight: bold; }
+        .fcst-box { display: flex; align-items: center; gap: 4px; background: #1a1a1a; border: 1px solid var(--border); border-radius: 4px; padding: 3px; height: 40px; }
+        .fcst-box button { background: #2a2a2a; border: none; color: #fff; width: 36px; height: 100%; font-size: 15px; font-weight: bold; border-radius: 3px; cursor: pointer; }
+        .fcst-val { color: var(--cyan); font-family: 'Consolas', monospace; font-size: 15px; font-weight: bold; width: 68px; text-align: center; }
 
-        .segment { display: flex; border: 1px solid var(--border-color); border-radius: 4px; overflow: hidden; width: 140px; height: 36px; }
-        .segment div { flex: 1; text-align: center; line-height: 36px; background: #1a1a1a; cursor: pointer; font-size: 12px; font-weight: bold; }
-        .segment div.active { box-shadow: inset 0 0 0 2px var(--accent-cyan); color: var(--value-green); background: var(--btn-active); }
+        /* TAFボックス */
+        #taf-box { display: none; background: #080808; border: 1px solid #2a2a2a; border-radius: 6px; padding: 8px 12px; margin-bottom: 10px; }
+        #taf-box .taf-hdr { color: #444; font-size: 10px; font-family: 'Consolas', monospace; margin-bottom: 4px; }
+        #taf-box .taf-line { display: block; color: #999; font-size: 14px; font-family: 'Consolas', monospace; line-height: 1.9; white-space: pre; padding: 1px 4px; border-radius: 3px; }
+        #taf-box .taf-line.hi { background: var(--active); color: #fff; font-weight: bold; border-left: 3px solid var(--cyan); }
 
-        /* モデル＋FCST GMT */
-        .top-controls { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 12px; flex-wrap: wrap; }
-        .forecast-box { display: flex; align-items: center; gap: 6px; }
-        .forecast-box label { color: var(--text-grey); font-size: 10px; font-weight: bold; white-space: nowrap; }
-        .fc-time-box { background: #1a1a1a; border: 1px solid var(--border-color); display: flex; align-items: center; border-radius: 4px; height: 40px; gap: 4px; padding: 4px; box-sizing: border-box; }
-        .fc-time-box button { background: #2a2a2a; border: none; color: white; width: 36px; height: 100%; cursor: pointer; font-size: 16px; border-radius: 3px; font-weight: bold; }
-        .fc-time-val { color: var(--accent-cyan); font-weight: bold; font-family: 'Consolas', monospace; font-size: 15px; width: 66px; text-align: center; }
+        /* ステータス */
+        .status { font-size: 10px; color: var(--cyan); font-style: italic; text-align: center; margin-bottom: 8px; min-height: 14px; }
 
-        /* TAF表示エリア */
-        .taf-box { background: #0d0d0d; border: 1px solid #2a2a2a; border-radius: 4px; padding: 8px 12px; margin-bottom: 10px; font-family: 'Consolas', monospace; font-size: 14px; line-height: 2.0; overflow-x: auto; display: none; }
-        .taf-line { color: #aaa; padding: 2px 5px; border-radius: 3px; white-space: pre; display: block; }
-        .taf-line.taf-active { background: var(--btn-active); color: #fff; font-weight: bold; border-left: 3px solid var(--accent-cyan); }
-        .taf-label { color: #555; font-size: 10px; margin-bottom: 4px; }
+        /* 入力行 */
+        .rows { display: flex; flex-direction: column; gap: 8px; }
+        .row { display: flex; justify-content: space-between; align-items: center; gap: 16px; min-height: 38px; }
+        .lft, .rgt { display: flex; align-items: center; gap: 8px; flex: 1; }
+        .lft { justify-content: flex-end; }
+        .rgt { justify-content: flex-start; }
+        .lft label { width: 58px; text-align: right; color: var(--grey); font-size: 11px; font-weight: bold; }
+        .rgt label { color: var(--grey); font-size: 11px; font-weight: bold; }
 
-        .unit-btn { background: #2a2a2a; border: 1px solid var(--border-color); color: var(--text-grey); border-radius: 4px; padding: 0 8px; height: 36px; cursor: pointer; font-size: 11px; font-weight: bold; white-space: nowrap; }
-        .unit-btn.active { border-color: var(--accent-cyan); color: var(--accent-cyan); background: var(--btn-active); }
+        /* インプットボックス */
+        .ibox { display: flex; align-items: center; gap: 4px; background: #1a1a1a; border: 1px solid var(--border); border-radius: 4px; height: 36px; padding: 3px; }
+        .ibox.w140 { width: 140px; }
+        .ibox.w210 { width: 210px; }
+        .ibox button { background: #2a2a2a; border: none; color: #fff; width: 28px; height: 100%; font-size: 14px; border-radius: 3px; cursor: pointer; flex-shrink: 0; }
+        .ibox .v { color: var(--green); font-weight: bold; font-family: 'Consolas', monospace; font-size: 18px; flex: 1; text-align: center; min-width: 0; }
 
-        .custom-select-wrapper { position: relative; width: 140px; height: 36px; }
-        .custom-select-trigger { background: #1a1a1a; border: 1px solid var(--border-color); border-radius: 4px; width: 100%; height: 36px; display: flex; align-items: center; justify-content: space-between; padding: 0 8px; box-sizing: border-box; cursor: pointer; font-weight: bold; font-size: 16px; font-family: 'Consolas', monospace; }
-        .custom-select-trigger .arrow { color: var(--text-grey); font-size: 10px; margin-left: 4px; }
-        .custom-select-dropdown { display: none; position: fixed; z-index: 9999; background: #1a1a1a; border: 1px solid var(--accent-cyan); border-radius: 6px; overflow-y: auto; max-height: 60vh; box-shadow: 0 8px 32px rgba(0,0,0,0.8); min-width: 140px; }
-        .custom-select-dropdown.open { display: block; }
-        .custom-select-option { padding: 10px 14px; cursor: pointer; font-size: 15px; font-weight: bold; font-family: 'Consolas', monospace; border-bottom: 1px solid #222; }
-        .custom-select-option:hover { background: #2a2a2a; }
-        .custom-select-option.selected { background: var(--btn-active); }
+        /* セグメント小 */
+        .seg2 { display: flex; border: 1px solid var(--border); border-radius: 4px; overflow: hidden; width: 120px; height: 36px; }
+        .seg2 div { flex: 1; text-align: center; line-height: 36px; background: #1a1a1a; cursor: pointer; font-size: 12px; font-weight: bold; }
+        .seg2 div.on { box-shadow: inset 0 0 0 2px var(--cyan); color: var(--green); background: var(--active); }
 
-        .col-jp { color: #adff2f; } .col-kr { color: #00ff7f; } .col-tw { color: #ffa500; }
-        .col-cn { color: #ff4d4d; } .col-sea { color: #ffa500; } .col-us { color: #00b4d8; }
+        /* セレクト */
+        select { background: #1a1a1a; color: var(--green); border: 1px solid var(--border); width: 140px; height: 36px; font-weight: bold; border-radius: 4px; font-size: 15px; padding: 0 5px; }
 
-        select { background: #1a1a1a; color: var(--value-green); border: 1px solid var(--border-color); width: 140px; height: 36px; font-weight: bold; border-radius: 4px; font-size: 16px; padding: 0 5px; }
+        /* ユニットボタン */
+        .ubtn { background: #2a2a2a; border: 1px solid var(--border); color: var(--grey); border-radius: 4px; padding: 0 10px; height: 36px; cursor: pointer; font-size: 11px; font-weight: bold; }
+        .ubtn.on { border-color: var(--cyan); color: var(--cyan); background: var(--active); }
 
-        .res-box { border: 2px solid var(--accent-cyan); padding: 12px; border-radius: 4px; margin-bottom: 12px; background: rgba(0,180,216,0.1); }
+        /* カスタムドロップダウン */
+        .dd-wrap { position: relative; width: 140px; height: 36px; }
+        .dd-trigger { background: #1a1a1a; border: 1px solid var(--border); border-radius: 4px; width: 100%; height: 36px; display: flex; align-items: center; justify-content: space-between; padding: 0 8px; cursor: pointer; font-weight: bold; font-size: 16px; font-family: 'Consolas', monospace; }
+        .dd-arrow { color: var(--grey); font-size: 10px; }
+        .dd-list { display: none; position: fixed; z-index: 9999; background: #1a1a1a; border: 1px solid var(--cyan); border-radius: 6px; overflow-y: auto; max-height: 60vh; box-shadow: 0 8px 32px rgba(0,0,0,.8); min-width: 140px; }
+        .dd-list.open { display: block; }
+        .dd-item { padding: 10px 14px; cursor: pointer; font-size: 15px; font-weight: bold; font-family: 'Consolas', monospace; border-bottom: 1px solid #222; }
+        .dd-item:hover { background: #2a2a2a; }
+        .dd-item.sel { background: var(--active); }
+        .jp { color: #adff2f; } .kr { color: #00ff7f; } .tw { color: #ffa500; }
+        .cn { color: #ff4d4d; } .sea { color: #ffa500; } .us { color: #00b4d8; }
+
+        /* Results */
+        .res-box { border: 2px solid var(--cyan); padding: 12px; border-radius: 4px; margin-bottom: 12px; background: rgba(0,180,216,.08); }
         .res-row { display: flex; justify-content: space-between; align-items: baseline; }
-        .res-val { font-size: 38px; font-weight: bold; font-family: 'Consolas', monospace; color: #ffff00; }
-        .res-unit { font-size: 14px; color: white; margin-left: 4px; }
+        .res-n1 { font-size: 40px; font-weight: bold; font-family: 'Consolas', monospace; color: #ff0; }
+        .res-u { font-size: 14px; margin-left: 4px; }
 
         table { width: 100%; border-collapse: collapse; }
-        th { text-align: left; color: var(--accent-cyan); padding: 5px 2px; border-bottom: 1px solid var(--accent-cyan); font-size: 10px; }
-        td { padding: 10px 2px; border-bottom: 1px solid #222; color: #fff; font-size: 18px; font-family: 'Consolas', monospace; }
-        .active-row td { background: #112211; }
-        .active-row td:first-child { color: var(--value-green) !important; font-weight: bold; }
-        .alert-cell { background-color: var(--alert-bg) !important; color: var(--alert-text) !important; }
-        .twy-header { background: #1a1a1a; color: var(--accent-cyan); font-size: 10px; text-align: center; font-weight: bold; padding: 5px 0; }
-        .twy-hi { color: var(--accent-cyan); } .twy-norm { color: var(--caution-red); }
-        .bt-safe { color: var(--value-green); } .bt-caution { color: var(--caution-red); font-weight: bold; }
+        th { text-align: left; color: var(--cyan); padding: 5px 2px; border-bottom: 1px solid var(--cyan); font-size: 10px; }
+        td { padding: 9px 2px; border-bottom: 1px solid #1e1e1e; color: #fff; font-size: 17px; font-family: 'Consolas', monospace; }
+        .ar td { background: #0d1f0d; }
+        .ar td:first-child { color: var(--green) !important; font-weight: bold; }
+        .al { background: var(--alert-bg) !important; color: var(--alert-txt) !important; }
+        .twy-hdr { background: #1a1a1a; color: var(--cyan); font-size: 10px; text-align: center; font-weight: bold; padding: 5px; }
+        .hi-spd { color: var(--cyan); } .lo-spd { color: var(--red); }
+        .bt-ok { color: var(--green); } .bt-ng { color: var(--red); font-weight: bold; }
     </style>
 </head>
 <body>
-<div class="main-container">
-    <div class="panel">
-        <h2>Input Parameters</h2>
-        <div class="top-controls">
-            <div class="segment" style="width:260px;height:40px;">
-                <div id="m788" onclick="setModel('787-8')">787-8</div>
-                <div id="m789" onclick="setModel('787-9')">787-9</div>
-            </div>
-            <div class="forecast-box">
-                <label>FCST GMT</label>
-                <div class="fc-time-box">
-                    <button onclick="stepFcst(-1)">-</button>
-                    <div class="fc-time-val" id="fcst-time-val">NOW</div>
-                    <button onclick="stepFcst(1)">+</button>
-                    <button onclick="stepFcst(3)">+3</button>
-                </div>
-            </div>
-        </div>
+<div class="wrap">
 
-        <!-- TAF表示：FCST GMT直下 -->
-        <div id="taf-box" class="taf-box">
-            <div class="taf-label" id="taf-label"></div>
-            <div id="taf-lines"></div>
-        </div>
+  <!-- LEFT PANEL -->
+  <div class="panel">
+    <h2>Input Parameters</h2>
 
-        <div class="input-row-container">
-            <div class="input-pair-row">
-                <div class="left-item">
-                    <label>ARPT</label>
-                    <div class="custom-select-wrapper">
-                        <div class="custom-select-trigger" id="apt-trigger" onclick="toggleAptDropdown(event)">
-                            <span id="apt-trigger-text" class="col-jp">HND</span>
-                            <span class="arrow">▼</span>
-                        </div>
-                        <div class="custom-select-dropdown" id="apt-dropdown"></div>
-                    </div>
-                </div>
-                <div class="right-item"></div>
-            </div>
-            <div class="input-pair-row">
-                <div class="left-item"><label>RWY</label><select id="rwy-select" onchange="onRwyChange()"></select></div>
-                <div class="right-item">
-                    <div class="segment"><div id="f25" onclick="setFlap(25)">25</div><div id="f30" onclick="setFlap(30)">30</div></div>
-                    <label>FLAP</label>
-                </div>
-            </div>
-            <div class="input-pair-row">
-                <div class="left-item"><label>COND</label><div class="input-box"><button onclick="step('cond',-1)">-</button><div class="val" id="cond-val">6</div><button onclick="step('cond',1)">+</button></div></div>
-                <div class="right-item"></div>
-            </div>
-            <div class="input-pair-row">
-                <div class="left-item"><label>WIND</label><div class="input-box wide-box"><button onclick="step('wind',-5)">&lt;</button><button onclick="step('wind',-1)">-</button><div class="val" id="wind-val">H 0</div><button onclick="step('wind',1)">+</button><button onclick="step('wind',5)">&gt;</button></div></div>
-                <div class="right-item">
-                    <div class="input-box"><button onclick="step('brks',-1)">-</button><div class="val" id="brks-val">3</div><button onclick="step('brks',1)">+</button></div>
-                    <label>BRKS</label>
-                </div>
-            </div>
-            <div class="input-pair-row">
-                <div class="left-item"><label>OAT</label><div class="input-box wide-box"><button onclick="step('oat',-10)">&lt;</button><button onclick="step('oat',-1)">-</button><div class="val" id="oat-val">15</div><button onclick="step('oat',1)">+</button><button onclick="step('oat',10)">&gt;</button></div></div>
-                <div class="right-item"></div>
-            </div>
-            <div class="input-pair-row">
-                <div class="left-item">
-                    <label>QNH</label>
-                    <div class="input-box wide-box">
-                        <button onclick="step('qnh',-10)">&lt;</button><button onclick="step('qnh',-1)">-</button>
-                        <div class="val" id="qnh-val">29.92</div>
-                        <button onclick="step('qnh',1)">+</button><button onclick="step('qnh',10)">&gt;</button>
-                    </div>
-                </div>
-                <div class="right-item">
-                    <button class="unit-btn active" id="btn-inhg" onclick="setQnhUnit('inHg')">inHg</button>
-                    <button class="unit-btn" id="btn-hpa" onclick="setQnhUnit('hPa')">hPa</button>
-                </div>
-            </div>
-            <div class="input-pair-row">
-                <div class="left-item">
-                    <label>WEIGHT</label>
-                    <div class="input-box wide-box">
-                        <button onclick="step('wgt',-10)">&lt;</button><button onclick="step('wgt',-1)">-</button>
-                        <div class="val" id="wgt-val">320T</div>
-                        <button onclick="step('wgt',1)">+</button><button onclick="step('wgt',10)">&gt;</button>
-                    </div>
-                </div>
-                <div class="right-item">
-                    <select id="rev-select" onchange="updateDisplay()"><option value="MAX">MAX REV</option><option value="ONE">ONE REV</option><option value="NO">NO REV</option></select>
-                    <label>REV</label>
-                </div>
-            </div>
-            <div class="input-pair-row">
-                <div class="left-item">
-                    <label>VREF ADD</label>
-                    <div class="input-box"><button onclick="step('vref',-1)">-</button><div class="val" id="vref-val">5</div><button onclick="step('vref',1)">+</button></div>
-                </div>
-                <div class="right-item"></div>
-            </div>
+    <!-- モデル + FCST GMT -->
+    <div class="top-row">
+      <div class="seg">
+        <div id="m8" onclick="setModel('787-8')">787-8</div>
+        <div id="m9" onclick="setModel('787-9')">787-9</div>
+      </div>
+      <div class="fcst-wrap">
+        <span>FCST GMT</span>
+        <div class="fcst-box">
+          <button onclick="stepFcst(-1)">-</button>
+          <div class="fcst-val" id="fcst-val">NOW</div>
+          <button onclick="stepFcst(1)">+</button>
+          <button onclick="stepFcst(3)">+3</button>
         </div>
+      </div>
     </div>
 
-    <div class="panel" style="max-width:500px;">
-        <h2>Results</h2>
-        <div class="res-box">
-            <div class="res-row">
-                <span style="color:var(--text-grey);font-size:11px;">TARGET THRUST</span>
-                <div><span class="res-val" id="res-n1">--.-</span><span class="res-unit">% N1</span></div>
-            </div>
-        </div>
-        <table>
-            <thead><tr><th>A/B</th><th>ADVISORY (FT)</th><th>1NM (°C)</th><th>2NM (°C)</th></tr></thead>
-            <tbody id="ldg-body"></tbody>
-        </table>
+    <!-- TAFボックス（FCST GMTの直下） -->
+    <div id="taf-box">
+      <div class="taf-hdr" id="taf-hdr"></div>
+      <div id="taf-lines"></div>
     </div>
-</div>
+
+    <!-- ステータス -->
+    <div class="status" id="status">READY</div>
+
+    <!-- 入力フォーム -->
+    <div class="rows">
+
+      <div class="row">
+        <div class="lft">
+          <label>ARPT</label>
+          <div class="dd-wrap">
+            <div class="dd-trigger" id="dd-trigger" onclick="ddToggle(event)">
+              <span id="dd-val" class="jp">HND</span>
+              <span class="dd-arrow">▼</span>
+            </div>
+            <div class="dd-list" id="dd-list"></div>
+          </div>
+        </div>
+        <div class="rgt"></div>
+      </div>
+
+      <div class="row">
+        <div class="lft">
+          <label>RWY</label>
+          <select id="rwy" onchange="onRwyChange()"></select>
+        </div>
+        <div class="rgt">
+          <div class="seg2">
+            <div id="f25" onclick="setFlap(25)">25</div>
+            <div id="f30" onclick="setFlap(30)">30</div>
+          </div>
+          <label>FLAP</label>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="lft">
+          <label>COND</label>
+          <div class="ibox w140"><button onclick="adj('cond',-1)">-</button><div class="v" id="v-cond">6</div><button onclick="adj('cond',1)">+</button></div>
+        </div>
+        <div class="rgt"></div>
+      </div>
+
+      <div class="row">
+        <div class="lft">
+          <label>WIND</label>
+          <div class="ibox w210"><button onclick="adj('wind',-5)">&lt;</button><button onclick="adj('wind',-1)">-</button><div class="v" id="v-wind">H 0</div><button onclick="adj('wind',1)">+</button><button onclick="adj('wind',5)">&gt;</button></div>
+        </div>
+        <div class="rgt">
+          <div class="ibox w140"><button onclick="adj('brks',-1)">-</button><div class="v" id="v-brks">3</div><button onclick="adj('brks',1)">+</button></div>
+          <label>BRKS</label>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="lft">
+          <label>OAT</label>
+          <div class="ibox w210"><button onclick="adj('oat',-10)">&lt;</button><button onclick="adj('oat',-1)">-</button><div class="v" id="v-oat">15</div><button onclick="adj('oat',1)">+</button><button onclick="adj('oat',10)">&gt;</button></div>
+        </div>
+        <div class="rgt"></div>
+      </div>
+
+      <div class="row">
+        <div class="lft">
+          <label>QNH</label>
+          <div class="ibox w210"><button onclick="adj('qnh',-10)">&lt;</button><button onclick="adj('qnh',-1)">-</button><div class="v" id="v-qnh">29.92</div><button onclick="adj('qnh',1)">+</button><button onclick="adj('qnh',10)">&gt;</button></div>
+        </div>
+        <div class="rgt">
+          <button class="ubtn on" id="u-inhg" onclick="setUnit('inHg')">inHg</button>
+          <button class="ubtn" id="u-hpa" onclick="setUnit('hPa')">hPa</button>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="lft">
+          <label>WEIGHT</label>
+          <div class="ibox w210"><button onclick="adj('wgt',-10)">&lt;</button><button onclick="adj('wgt',-1)">-</button><div class="v" id="v-wgt">320T</div><button onclick="adj('wgt',1)">+</button><button onclick="adj('wgt',10)">&gt;</button></div>
+        </div>
+        <div class="rgt">
+          <select id="rev" onchange="redraw()"><option value="MAX">MAX REV</option><option value="ONE">ONE REV</option><option value="NO">NO REV</option></select>
+          <label>REV</label>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="lft">
+          <label>VREF ADD</label>
+          <div class="ibox w140"><button onclick="adj('vref',-1)">-</button><div class="v" id="v-vref">5</div><button onclick="adj('vref',1)">+</button></div>
+        </div>
+        <div class="rgt"></div>
+      </div>
+
+    </div><!-- .rows -->
+  </div><!-- left panel -->
+
+  <!-- RIGHT PANEL -->
+  <div class="panel" style="max-width:500px;">
+    <h2>Results</h2>
+    <div class="res-box">
+      <div class="res-row">
+        <span style="color:var(--grey);font-size:11px;">TARGET THRUST</span>
+        <div><span class="res-n1" id="res-n1">--.-</span><span class="res-u">% N1</span></div>
+      </div>
+    </div>
+    <table>
+      <thead><tr><th>A/B</th><th>ADVISORY (FT)</th><th>1NM (°C)</th><th>2NM (°C)</th></tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+
+</div><!-- .wrap -->
 
 <script>
-// ============================================================
-// データベース
-// ============================================================
-const hiSpdTwy = ["A10","A12","L10","L12","L13","C10","C11","D5","D3","C7","C6","C4","A5","A2","L5","B6","B4","B3","E3","E5","E6","E8","E9","W8","W9","W3","B7","B5","B3","B8","B10","B11","F6","F4","F3","F5","F7","F9","E7","E5","E9","E13","E15","W4","W5","W6","A6","A7","A8"];
+// ================================================================
+// DATABASE
+// ================================================================
+const HI_TWY = ["A10","A12","L10","L12","L13","C10","C11","D5","D3","C7","C6","C4","A5","A2","L5","B6","B4","B3","E3","E5","E6","E8","E9","W8","W9","W3","B7","B5","B3","B8","B10","B11","F6","F4","F3","F5","F7","F9","E7","E5","E9","E13","E15","W4","W5","W6","A6","A7","A8"];
 
-const airportData = {
-    "CTS": { r:{"01L":9842,"01R":9842,"19L":9842,"19R":9842}, lat:42.77, lon:141.69, c:"JP" },
-    "NRT": { r:{"16L":13123,"16R":8202,"34L":8202,"34R":13123}, lat:35.76, lon:140.38, c:"JP" },
-    "HND": { r:{"34L":11024,"34R":11024,"16L":11024,"16R":9842,"22":8202,"23":8202,"04":8202,"05":8202}, lat:35.54, lon:139.78, c:"JP" },
-    "NGO": { r:{"18":11483,"36":11483}, lat:34.86, lon:136.81, c:"JP" },
-    "ITM": { r:{"32L":9842,"14R":9842}, lat:34.78, lon:135.44, c:"JP" },
-    "KIX": { r:{"06L":11483,"06R":13123,"24L":13123,"24R":11483}, lat:34.43, lon:135.23, c:"JP" },
-    "FUK": { r:{"16L":9186,"34R":9186}, lat:33.58, lon:130.45, c:"JP" },
-    "OKA": { r:{"18L":11483,"18R":8858,"36L":8858,"36R":11483}, lat:26.20, lon:127.64, c:"JP" },
-    "GMP": { r:{"14L":11811,"14R":10499,"32L":10499,"32R":11811}, lat:37.55, lon:126.79, c:"KR" },
-    "TSA": { r:{"10":8547,"28":8547}, lat:25.07, lon:121.55, c:"TW" },
-    "TPE": { r:{"05L":12008,"05R":12467,"23L":12467,"23R":12008}, lat:25.07, lon:121.23, c:"TW" },
-    "PEK": { r:{"01":12467,"19":12467,"18L":12467,"18R":12467,"36L":12467,"36R":12467}, lat:40.07, lon:116.59, c:"CN" },
-    "PVG": { r:{"16L":12467,"16R":12467,"17L":11155,"17R":11155,"34L":12467,"34R":12467,"35L":11155,"35R":11155}, lat:31.14, lon:121.80, c:"CN" },
-    "SHA": { r:{"18L":11155,"18R":11155,"36L":11155,"36R":11155}, lat:31.19, lon:121.33, c:"CN" },
-    "DLC": { r:{"10":11155,"28":11155}, lat:38.97, lon:121.54, c:"CN" },
-    "HKG": { r:{"07L":12467,"07C":12467,"07R":12467,"25L":12467,"25C":12467,"25R":12467}, lat:22.30, lon:113.91, c:"HK" },
-    "CAN": { r:{"01":12467,"02L":12467,"02R":12467,"19":12467,"20L":12467,"20R":12467}, lat:23.39, lon:113.29, c:"CN" },
-    "HAN": { r:{"11L":12467,"11R":12467,"29L":12467,"29R":12467}, lat:21.22, lon:105.80, c:"VN" },
-    "SGN": { r:{"07L":10000,"07R":12467,"25L":12467,"25R":10000}, lat:10.81, lon:106.65, c:"VN" },
-    "BKK": { r:{"01":13123,"19":13123,"02L":12139,"20R":12139,"02R":13123,"20L":13123}, lat:13.69, lon:100.75, c:"TH" },
-    "KUL": { r:{"14L":13123,"14R":13123,"15":13123,"32L":13123,"32R":13123,"33":13123}, lat:2.74, lon:101.70, c:"MY" },
-    "SIN": { r:{"02L":13123,"02C":13123,"02R":13123,"20L":13123,"20C":13123,"20R":13123}, lat:1.36, lon:103.99, c:"SG" },
-    "CGK": { r:{"07L":11811,"07R":11811,"25L":11811,"25R":11811}, lat:-6.12, lon:106.65, c:"ID" },
-    "HNL": { r:{"04L":9000,"04R":12000,"08L":12300,"08R":12000,"26L":12000,"26R":12300}, lat:21.31, lon:-157.92, c:"US" }
+const APTS = {
+    "CTS":{r:{"01L":9842,"01R":9842,"19L":9842,"19R":9842},lat:42.77,lon:141.69,c:"JP"},
+    "NRT":{r:{"16L":13123,"16R":8202,"34L":8202,"34R":13123},lat:35.76,lon:140.38,c:"JP"},
+    "HND":{r:{"34L":11024,"34R":11024,"16L":11024,"16R":9842,"22":8202,"23":8202,"04":8202,"05":8202},lat:35.54,lon:139.78,c:"JP"},
+    "NGO":{r:{"18":11483,"36":11483},lat:34.86,lon:136.81,c:"JP"},
+    "ITM":{r:{"32L":9842,"14R":9842},lat:34.78,lon:135.44,c:"JP"},
+    "KIX":{r:{"06L":11483,"06R":13123,"24L":13123,"24R":11483},lat:34.43,lon:135.23,c:"JP"},
+    "FUK":{r:{"16L":9186,"34R":9186},lat:33.58,lon:130.45,c:"JP"},
+    "OKA":{r:{"18L":11483,"18R":8858,"36L":8858,"36R":11483},lat:26.20,lon:127.64,c:"JP"},
+    "GMP":{r:{"14L":11811,"14R":10499,"32L":10499,"32R":11811},lat:37.55,lon:126.79,c:"KR"},
+    "TSA":{r:{"10":8547,"28":8547},lat:25.07,lon:121.55,c:"TW"},
+    "TPE":{r:{"05L":12008,"05R":12467,"23L":12467,"23R":12008},lat:25.07,lon:121.23,c:"TW"},
+    "PEK":{r:{"01":12467,"19":12467,"18L":12467,"18R":12467,"36L":12467,"36R":12467},lat:40.07,lon:116.59,c:"CN"},
+    "PVG":{r:{"16L":12467,"16R":12467,"17L":11155,"17R":11155,"34L":12467,"34R":12467,"35L":11155,"35R":11155},lat:31.14,lon:121.80,c:"CN"},
+    "SHA":{r:{"18L":11155,"18R":11155,"36L":11155,"36R":11155},lat:31.19,lon:121.33,c:"CN"},
+    "DLC":{r:{"10":11155,"28":11155},lat:38.97,lon:121.54,c:"CN"},
+    "HKG":{r:{"07L":12467,"07C":12467,"07R":12467,"25L":12467,"25C":12467,"25R":12467},lat:22.30,lon:113.91,c:"HK"},
+    "CAN":{r:{"01":12467,"02L":12467,"02R":12467,"19":12467,"20L":12467,"20R":12467},lat:23.39,lon:113.29,c:"CN"},
+    "HAN":{r:{"11L":12467,"11R":12467,"29L":12467,"29R":12467},lat:21.22,lon:105.80,c:"VN"},
+    "SGN":{r:{"07L":10000,"07R":12467,"25L":12467,"25R":10000},lat:10.81,lon:106.65,c:"VN"},
+    "BKK":{r:{"01":13123,"19":13123,"02L":12139,"20R":12139,"02R":13123,"20L":13123},lat:13.69,lon:100.75,c:"TH"},
+    "KUL":{r:{"14L":13123,"14R":13123,"15":13123,"32L":13123,"32R":13123,"33":13123},lat:2.74,lon:101.70,c:"MY"},
+    "SIN":{r:{"02L":13123,"02C":13123,"02R":13123,"20L":13123,"20C":13123,"20R":13123},lat:1.36,lon:103.99,c:"SG"},
+    "CGK":{r:{"07L":11811,"07R":11811,"25L":11811,"25R":11811},lat:-6.12,lon:106.65,c:"ID"},
+    "HNL":{r:{"04L":9000,"04R":12000,"08L":12300,"08R":12000,"26L":12000,"26R":12300},lat:21.31,lon:-157.92,c:"US"}
 };
 
-const twyData = {
-    "HND": {
-        "34L": [{n:"A10",d:5187},{n:"A12",d:6876},{n:"L12",d:6515},{n:"L13",d:7165}],
-        "34R": [{n:"C11",d:7270},{n:"C12",d:7998}],
-        "16L": [{n:"C6",d:5925},{n:"C5",d:6725},{n:"C4",d:7004},{n:"C3",d:8044}],
-        "16R": [{n:"A5",d:5305},{n:"A2",d:6876},{n:"A1",d:9769},{n:"L5",d:5147},{n:"L4",d:6040},{n:"L3",d:6361}],
-        "23":  [{n:"D3",d:6391},{n:"D2",d:7417}],
-        "22":  [{n:"B6",d:5213},{n:"B4",d:6207},{n:"B3",d:6830}]
-    },
-    "FUK": {
-        "16L": [{n:"E9",d:6082},{n:"E10",d:7283},{n:"E11",d:8451}],
-        "34R": [{n:"E5",d:6079},{n:"E4",d:7454},{n:"E3",d:7788},{n:"E2",d:8897}]
-    },
-    "ITM": {
-        "32L": [{n:"W8",d:5793},{n:"W9",d:6679}],
-        "14R": [{n:"W3",d:6719},{n:"W2",d:8723}]
-    },
-    "DLC": {
-        "28": [{n:"F",d:5393},{n:"G",d:6555}],
-        "10": [{n:"E",d:5469},{n:"D",d:6535}]
-    },
-    "SGN": {
-        "25R": [{n:"P4",d:6158},{n:"P5",d:6991},{n:"P6",d:9790}],
-        "07L": [{n:"P3",d:6266},{n:"P2",d:8907}]
-    },
-    "BKK": {
-        "01":  [{n:"B7",d:5964},{n:"B5",d:7962},{n:"B3",d:9156}],
-        "19":  [{n:"B8",d:5538},{n:"B10",d:6965},{n:"B11",d:8579}],
-        "02L": [{n:"F6",d:5725},{n:"F4",d:7496},{n:"F3",d:9586}],
-        "20R": [{n:"F5",d:5419},{n:"F7",d:6994},{n:"F9",d:5471}],
-        "02R": [{n:"E7",d:6958},{n:"E5",d:8569}],
-        "20L": [{n:"E9",d:5052},{n:"E13",d:7139},{n:"E15",d:8205}]
-    }
+const TWYS = {
+    "HND":{"34L":[{n:"A10",d:5187},{n:"A12",d:6876},{n:"L12",d:6515},{n:"L13",d:7165}],"34R":[{n:"C11",d:7270},{n:"C12",d:7998}],"16L":[{n:"C6",d:5925},{n:"C5",d:6725},{n:"C4",d:7004},{n:"C3",d:8044}],"16R":[{n:"A5",d:5305},{n:"A2",d:6876},{n:"A1",d:9769},{n:"L5",d:5147},{n:"L4",d:6040},{n:"L3",d:6361}],"23":[{n:"D3",d:6391},{n:"D2",d:7417}],"22":[{n:"B6",d:5213},{n:"B4",d:6207},{n:"B3",d:6830}]},
+    "FUK":{"16L":[{n:"E9",d:6082},{n:"E10",d:7283},{n:"E11",d:8451}],"34R":[{n:"E5",d:6079},{n:"E4",d:7454},{n:"E3",d:7788},{n:"E2",d:8897}]},
+    "ITM":{"32L":[{n:"W8",d:5793},{n:"W9",d:6679}],"14R":[{n:"W3",d:6719},{n:"W2",d:8723}]},
+    "DLC":{"28":[{n:"F",d:5393},{n:"G",d:6555}],"10":[{n:"E",d:5469},{n:"D",d:6535}]},
+    "SGN":{"25R":[{n:"P4",d:6158},{n:"P5",d:6991},{n:"P6",d:9790}],"07L":[{n:"P3",d:6266},{n:"P2",d:8907}]},
+    "BKK":{"01":[{n:"B7",d:5964},{n:"B5",d:7962},{n:"B3",d:9156}],"19":[{n:"B8",d:5538},{n:"B10",d:6965},{n:"B11",d:8579}],"02L":[{n:"F6",d:5725},{n:"F4",d:7496},{n:"F3",d:9586}],"20R":[{n:"F5",d:5419},{n:"F7",d:6994},{n:"F9",d:5471}],"02R":[{n:"E7",d:6958},{n:"E5",d:8569}],"20L":[{n:"E9",d:5052},{n:"E13",d:7139},{n:"E15",d:8205}]}
 };
 
-const ldgPerf = {
-    "787-8": {
-        refWgt: 380000,
-        25: {
-            6:[{ref:5550,wt:[120,-100],alt:170,wind:[-270,880],temp:[150,-150],vref:310,rev:[0,0]},{ref:6740,wt:[150,-130],alt:220,wind:[-340,1150],temp:[190,-190],vref:380,rev:[0,0]},{ref:7680,wt:[180,-170],alt:260,wind:[-400,1350],temp:[230,-230],vref:410,rev:[20,20]},{ref:8340,wt:[210,-200],alt:310,wind:[-450,1520],temp:[310,-250],vref:390,rev:[320,320]},{ref:8840,wt:[240,-210],alt:360,wind:[-490,1680],temp:[380,-260],vref:380,rev:[950,1020]}],
-            5:[{ref:5700,wt:[130,-110],alt:220,wind:[-280,1070],temp:[170,-160],vref:300,rev:[220,630]},{ref:6870,wt:[150,-140],alt:230,wind:[-350,1190],temp:[200,-200],vref:390,rev:[0,0]},{ref:7750,wt:[180,-170],alt:270,wind:[-410,1360],temp:[240,-230],vref:420,rev:[20,20]},{ref:8410,wt:[210,-200],alt:320,wind:[-460,1540],temp:[310,-250],vref:400,rev:[350,350]},{ref:8850,wt:[240,-210],alt:360,wind:[-500,1690],temp:[380,-270],vref:390,rev:[960,1030]}],
-            4:[{ref:6120,wt:[130,-120],alt:210,wind:[-330,1130],temp:[200,-160],vref:300,rev:[400,1000]},{ref:6950,wt:[150,-140],alt:230,wind:[-370,1250],temp:[200,-200],vref:390,rev:[70,370]},{ref:7750,wt:[180,-170],alt:260,wind:[-410,1370],temp:[230,-230],vref:420,rev:[40,120]},{ref:8410,wt:[210,-190],alt:320,wind:[-450,1520],temp:[310,-250],vref:400,rev:[330,330]},{ref:8850,wt:[240,-210],alt:360,wind:[-490,1680],temp:[380,-260],vref:380,rev:[950,1020]}],
-            3:[{ref:6510,wt:[150,-130],alt:230,wind:[-360,1270],temp:[220,-180],vref:300,rev:[540,1380]},{ref:7140,wt:[150,-140],alt:240,wind:[-390,1360],temp:[210,-200],vref:390,rev:[190,950]},{ref:7860,wt:[180,-170],alt:270,wind:[-430,1460],temp:[240,-230],vref:410,rev:[100,450]},{ref:8420,wt:[210,-200],alt:320,wind:[-460,1560],temp:[310,-250],vref:390,rev:[390,510]},{ref:8850,wt:[240,-210],alt:360,wind:[-490,1680],temp:[380,-260],vref:390,rev:[950,1040]}],
-            2:[{ref:7280,wt:[200,-170],alt:320,wind:[-450,1620],temp:[300,-230],vref:320,rev:[890,2500]},{ref:7480,wt:[180,-160],alt:310,wind:[-430,1490],temp:[240,-210],vref:340,rev:[690,2300]},{ref:8110,wt:[180,-180],alt:280,wind:[-440,1490],temp:[250,-230],vref:380,rev:[250,1700]},{ref:8580,wt:[210,-200],alt:320,wind:[-470,1570],temp:[320,-250],vref:360,rev:[450,1230]},{ref:8940,wt:[240,-210],alt:360,wind:[-500,1690],temp:[380,-260],vref:370,rev:[990,1280]}],
-            1:[{ref:9300,wt:[230,-200],alt:330,wind:[-630,2430],temp:[390,-270],vref:320,rev:[1970,6360]},{ref:9310,wt:[230,-200],alt:330,wind:[-630,2430],temp:[390,-270],vref:340,rev:[1970,6350]},{ref:9560,wt:[230,-210],alt:330,wind:[-650,2460],temp:[360,-280],vref:380,rev:[1730,6120]},{ref:9820,wt:[240,-220],alt:340,wind:[-660,2500],temp:[390,-290],vref:360,rev:[1600,5860]},{ref:9990,wt:[250,-230],alt:410,wind:[-670,2530],temp:[420,-300],vref:370,rev:[1850,5700]}]
-        },
-        30: {
-            6:[{ref:5370,wt:[110,-90],alt:170,wind:[-270,880],temp:[140,-140],vref:310,rev:[0,0]},{ref:6510,wt:[150,-120],alt:210,wind:[-340,1130],temp:[190,-190],vref:380,rev:[0,0]},{ref:7410,wt:[170,-150],alt:250,wind:[-400,1330],temp:[220,-220],vref:410,rev:[0,0]},{ref:8080,wt:[200,-180],alt:300,wind:[-440,1500],temp:[290,-240],vref:390,rev:[260,260]},{ref:8590,wt:[230,-190],alt:350,wind:[-490,1660],temp:[360,-260],vref:380,rev:[840,900]}],
-            5:[{ref:5510,wt:[130,-90],alt:210,wind:[-270,1050],temp:[170,-150],vref:300,rev:[200,560]},{ref:6620,wt:[150,-120],alt:220,wind:[-350,1160],temp:[190,-190],vref:390,rev:[0,0]},{ref:7470,wt:[170,-150],alt:260,wind:[-400,1340],temp:[220,-220],vref:420,rev:[10,10]},{ref:8130,wt:[200,-180],alt:310,wind:[-450,1520],temp:[300,-240],vref:390,rev:[280,280]},{ref:8590,wt:[230,-190],alt:350,wind:[-490,1670],temp:[360,-260],vref:390,rev:[840,900]}],
-            4:[{ref:5950,wt:[130,-100],alt:200,wind:[-320,1120],temp:[190,-160],vref:290,rev:[370,910]},{ref:6710,wt:[150,-120],alt:220,wind:[-360,1230],temp:[190,-190],vref:390,rev:[70,350]},{ref:7470,wt:[170,-150],alt:250,wind:[-400,1350],temp:[220,-220],vref:420,rev:[30,100]},{ref:8130,wt:[200,-180],alt:300,wind:[-400,1400],temp:[290,-240],vref:400,rev:[270,270]},{ref:8590,wt:[230,-190],alt:350,wind:[-490,1660],temp:[360,-260],vref:380,rev:[840,900]}],
-            3:[{ref:6330,wt:[140,-120],alt:220,wind:[-360,1260],temp:[210,-170],vref:290,rev:[500,1260]},{ref:6890,wt:[150,-120],alt:230,wind:[-380,1340],temp:[200,-200],vref:380,rev:[190,890]},{ref:7590,wt:[170,-150],alt:260,wind:[-420,1440],temp:[220,-220],vref:410,rev:[90,410]},{ref:8150,wt:[200,-180],alt:300,wind:[-450,1540],temp:[290,-240],vref:390,rev:[320,440]},{ref:8590,wt:[230,-190],alt:350,wind:[-490,1660],temp:[360,-260],vref:390,rev:[840,920]}],
-            2:[{ref:7030,wt:[190,-150],alt:310,wind:[-450,1610],temp:[290,-220],vref:320,rev:[810,2200]},{ref:7220,wt:[180,-140],alt:300,wind:[-430,1480],temp:[230,-210],vref:330,rev:[620,2000]},{ref:7820,wt:[180,-160],alt:270,wind:[-450,1470],temp:[230,-230],vref:380,rev:[220,1440]},{ref:8300,wt:[200,-190],alt:310,wind:[-470,1550],temp:[300,-240],vref:360,rev:[370,960]},{ref:8670,wt:[230,-190],alt:350,wind:[-490,1670],temp:[360,-260],vref:370,rev:[870,1070]}],
-            1:[{ref:9070,wt:[230,-190],alt:330,wind:[-630,2420],temp:[370,-260],vref:320,rev:[1850,5830]},{ref:9070,wt:[230,-180],alt:330,wind:[-630,2420],temp:[370,-260],vref:330,rev:[1850,5830]},{ref:9300,wt:[230,-190],alt:320,wind:[-640,2450],temp:[350,-270],vref:380,rev:[1650,5630]},{ref:9560,wt:[240,-210],alt:340,wind:[-650,2490],temp:[370,-280],vref:360,rev:[1490,5370]},{ref:9720,wt:[250,-210],alt:400,wind:[-660,2520],temp:[400,-290],vref:370,rev:[1720,5200]}]
-        }
-    },
-    "787-9": {
-        refWgt: 420000,
-        25: {
-            6:[{ref:6130,wt:[110,-120],alt:190,wind:[-280,910],temp:[160,-170],vref:320,rev:[0,10]},{ref:7500,wt:[140,-150],alt:250,wind:[-360,1200],temp:[220,-220],vref:410,rev:[0,0]},{ref:8650,wt:[170,-190],alt:300,wind:[-430,1430],temp:[260,-260],vref:440,rev:[20,20]},{ref:9400,wt:[200,-220],alt:350,wind:[-480,1610],temp:[310,-280],vref:410,rev:[340,340]},{ref:10150,wt:[230,-240],alt:420,wind:[-540,1830],temp:[440,-300],vref:410,rev:[1180,1380]}],
-            5:[{ref:6320,wt:[130,-120],alt:260,wind:[-300,1160],temp:[210,-180],vref:320,rev:[290,650]},{ref:7640,wt:[140,-150],alt:260,wind:[-370,1240],temp:[220,-220],vref:420,rev:[0,0]},{ref:8740,wt:[170,-190],alt:300,wind:[-440,1450],temp:[270,-260],vref:440,rev:[30,30]},{ref:9450,wt:[200,-220],alt:360,wind:[-490,1620],temp:[350,-280],vref:420,rev:[360,360]},{ref:10150,wt:[240,-240],alt:420,wind:[-540,1840],temp:[440,-300],vref:410,rev:[1180,1380]}]
-        },
-        30: {
-            6:[{ref:5850,wt:[100,-110],alt:180,wind:[-270,900],temp:[160,-160],vref:320,rev:[0,10]},{ref:7100,wt:[130,-140],alt:230,wind:[-350,1170],temp:[200,-210],vref:420,rev:[0,0]},{ref:8190,wt:[160,-170],alt:280,wind:[-420,1400],temp:[240,-240],vref:450,rev:[0,0]},{ref:9000,wt:[190,-200],alt:330,wind:[-470,1580],temp:[310,-270],vref:420,rev:[200,200]},{ref:9810,wt:[220,-230],alt:390,wind:[-540,1820],temp:[410,-290],vref:410,rev:[950,1060]}],
-            5:[{ref:6030,wt:[130,-110],alt:240,wind:[-300,1150],temp:[200,-170],vref:320,rev:[250,550]},{ref:7240,wt:[130,-140],alt:240,wind:[-360,1210],temp:[210,-210],vref:410,rev:[0,0]},{ref:8290,wt:[160,-170],alt:280,wind:[-430,1420],temp:[250,-250],vref:450,rev:[0,0]},{ref:9050,wt:[190,-200],alt:330,wind:[-480,1600],temp:[320,-270],vref:430,rev:[210,210]},{ref:9810,wt:[220,-230],alt:390,wind:[-540,1820],temp:[410,-300],vref:420,rev:[950,1060]}]
-        }
-    }
-};
-
-const brakeTempData = {
-    "787-8": {
-        25:[{w:380,nm1:{1:11.4,2:"Ctn",3:"Ctn"},nm2:{1:2.6,2:"Ctn",3:"Ctn"}},{w:370,nm1:{1:22.3,2:1.3,3:"Ctn"},nm2:{1:13.5,2:"Ctn",3:"Ctn"}},{w:360,nm1:{1:38.0,2:12.2,3:"Ctn"},nm2:{1:24.8,2:3.4,3:"Ctn"}},{w:350,nm1:{1:40.0,2:27.6,3:12.9},nm2:{1:40.0,2:17.9,3:4.2}},{w:345,nm1:{1:40.0,2:40.0,3:20.3},nm2:{1:40.0,2:26.0,3:11.6}},{w:340,nm1:{2:40.0,3:28.8,4:14.2},nm2:{2:38.1,3:18.9,4:5.8}},{w:335,nm1:{2:40.0,3:40.0,4:22.2},nm2:{2:40.0,3:27.5,4:13.3}},{w:330,nm1:{2:40.0,3:40.0,4:31.8},nm2:{2:40.0,3:40.0,4:21.3}},{w:325,nm1:{2:40.0,3:40.0,4:40.0},nm2:{2:40.0,3:40.0,4:37.6}},{w:320,nm1:{2:40.0,3:40.0,4:40.0},nm2:{2:40.0,3:40.0,4:40.0}}],
-        30:[{w:380,nm1:{1:21.5,2:0.7,3:"Ctn"},nm2:{1:12.8,2:"Ctn",3:"Ctn"}},{w:370,nm1:{1:36.4,2:11.5,3:"Ctn"},nm2:{1:23.9,2:2.6,3:"Ctn"}},{w:360,nm1:{1:40.0,2:26.6,3:12.1},nm2:{1:40.0,2:17.1,3:3.4}},{w:350,nm1:{1:40.0,2:40.0,3:27.8},nm2:{1:40.0,2:36.3,3:18.1}},{w:345,nm1:{1:40.0,2:40.0,3:40.0},nm2:{1:40.0,2:40.0,3:26.4}},{w:340,nm1:{2:40.0,3:40.0,4:29.9},nm2:{2:40.0,3:39.4,4:19.9}},{w:335,nm1:{2:40.0,3:40.0,4:40.0},nm2:{2:40.0,3:40.0,4:28.9}},{w:330,nm1:{2:40.0,3:40.0,4:40.0},nm2:{2:40.0,3:40.0,4:40.0}}]
-    },
-    "787-9": {
-        25:[{w:425,nm1:{1:"Ctn",2:"Ctn",3:"Ctn"},nm2:{1:"Ctn",2:"Ctn",3:"Ctn"}},{w:400,nm1:{1:26.8,2:"Ctn"},nm2:{1:18.4,2:"Ctn"}},{w:390,nm1:{1:40.0,2:9.1},nm2:{1:34.4,2:1.2}},{w:385,nm1:{1:40.0,2:15.7,3:0.5},nm2:{1:40.0,2:8.0,3:"Ctn"}},{w:380,nm1:{2:22.9,3:7.4,4:"Ctn"},nm2:{2:14.7,3:"Ctn",4:"Ctn"}},{w:375,nm1:{2:30.8,3:14.2,4:"Ctn"},nm2:{2:21.9,3:6.5,4:"Ctn"}},{w:370,nm1:{2:40.0,3:21.4,4:6.4},nm2:{2:29.6,3:13.5,4:"Ctn"}},{w:365,nm1:{2:40.0,3:29.2,4:13.4},nm2:{2:40.0,3:20.7,4:5.7}},{w:360,nm1:{2:40.0,3:40.0,4:20.8},nm2:{2:40.0,3:28.5,4:12.9}},{w:355,nm1:{2:40.0,3:40.0,4:28.6},nm2:{2:40.0,3:40.0,4:20.3}},{w:350,nm1:{2:40.0,3:40.0,4:40.0},nm2:{2:40.0,3:40.0,4:28.2}},{w:340,nm1:{2:40.0,3:40.0,4:40.0},nm2:{2:40.0,3:40.0,4:40.0}}],
-        30:[{w:425,nm1:{1:12.5},nm2:{1:4.5}},{w:400,nm1:{1:40.0,2:11.6},nm2:{1:38.8,2:3.8}},{w:390,nm1:{1:40.0,2:25.7,3:10.0},nm2:{1:40.0,2:17.4,3:2.3}},{w:385,nm1:{1:40.0,2:35.2,3:16.9},nm2:{1:40.0,2:24.7,3:9.2}},{w:380,nm1:{2:40.0,3:24.3,4:9.1},nm2:{2:33.8,3:16.2,4:1.4}},{w:375,nm1:{2:40.0,3:33.3,4:16.2},nm2:{2:40.0,3:23.6,4:8.4}},{w:370,nm1:{2:40.0,3:40.0,4:23.6},nm2:{2:40.0,3:32.3,4:15.7}},{w:365,nm1:{2:40.0,3:40.0,4:32.6},nm2:{2:40.0,3:40.0,4:23.1}},{w:360,nm1:{2:40.0,3:40.0,4:40.0},nm2:{2:40.0,3:40.0,4:31.9}},{w:350,nm1:{2:40.0,3:40.0,4:40.0},nm2:{2:40.0,3:40.0,4:40.0}}]
-    }
-};
-
-// ============================================================
-// ICAOマッピング（TAF取得用）
-// ============================================================
-const icaoMap = {
+const ICAO4 = {
     "CTS":"RJCC","NRT":"RJAA","HND":"RJTT","NGO":"RJGG","ITM":"RJOO",
     "KIX":"RJBB","FUK":"RJFF","OKA":"ROAH","GMP":"RKSS","TSA":"RCSS",
     "TPE":"RCTP","PEK":"ZBAA","PVG":"ZSPD","SHA":"ZSSS","DLC":"ZYTL",
@@ -324,404 +294,396 @@ const icaoMap = {
     "KUL":"WMKK","SIN":"WSSS","CGK":"WIII","HNL":"PHNL"
 };
 
-// ============================================================
-// 状態管理
-// ============================================================
-let state = {
-    model:'787-8', flap:25, brksIdx:2, cond:6, wind:0,
-    oat:15, qnh:29.92, qnhUnit:'inHg', vref:5,
-    apt:'HND', rwy:'34L', wgt:320000,
-    fcstOffsetHours:0,
-    rwyManual: false  // 手動でRWYを変更したフラグ
+const LDG = {
+    "787-8":{ref:380000,25:{6:[{ref:5550,wt:[120,-100],wind:[-270,880],temp:[150,-150],vref:310,rev:[0,0]},{ref:6740,wt:[150,-130],wind:[-340,1150],temp:[190,-190],vref:380,rev:[0,0]},{ref:7680,wt:[180,-170],wind:[-400,1350],temp:[230,-230],vref:410,rev:[20,20]},{ref:8340,wt:[210,-200],wind:[-450,1520],temp:[310,-250],vref:390,rev:[320,320]},{ref:8840,wt:[240,-210],wind:[-490,1680],temp:[380,-260],vref:380,rev:[950,1020]}],5:[{ref:5700,wt:[130,-110],wind:[-280,1070],temp:[170,-160],vref:300,rev:[220,630]},{ref:6870,wt:[150,-140],wind:[-350,1190],temp:[200,-200],vref:390,rev:[0,0]},{ref:7750,wt:[180,-170],wind:[-410,1360],temp:[240,-230],vref:420,rev:[20,20]},{ref:8410,wt:[210,-200],wind:[-460,1540],temp:[310,-250],vref:400,rev:[350,350]},{ref:8850,wt:[240,-210],wind:[-500,1690],temp:[380,-270],vref:390,rev:[960,1030]}],4:[{ref:6120,wt:[130,-120],wind:[-330,1130],temp:[200,-160],vref:300,rev:[400,1000]},{ref:6950,wt:[150,-140],wind:[-370,1250],temp:[200,-200],vref:390,rev:[70,370]},{ref:7750,wt:[180,-170],wind:[-410,1370],temp:[230,-230],vref:420,rev:[40,120]},{ref:8410,wt:[210,-190],wind:[-450,1520],temp:[310,-250],vref:400,rev:[330,330]},{ref:8850,wt:[240,-210],wind:[-490,1680],temp:[380,-260],vref:380,rev:[950,1020]}],3:[{ref:6510,wt:[150,-130],wind:[-360,1270],temp:[220,-180],vref:300,rev:[540,1380]},{ref:7140,wt:[150,-140],wind:[-390,1360],temp:[210,-200],vref:390,rev:[190,950]},{ref:7860,wt:[180,-170],wind:[-430,1460],temp:[240,-230],vref:410,rev:[100,450]},{ref:8420,wt:[210,-200],wind:[-460,1560],temp:[310,-250],vref:390,rev:[390,510]},{ref:8850,wt:[240,-210],wind:[-490,1680],temp:[380,-260],vref:390,rev:[950,1040]}],2:[{ref:7280,wt:[200,-170],wind:[-450,1620],temp:[300,-230],vref:320,rev:[890,2500]},{ref:7480,wt:[180,-160],wind:[-430,1490],temp:[240,-210],vref:340,rev:[690,2300]},{ref:8110,wt:[180,-180],wind:[-440,1490],temp:[250,-230],vref:380,rev:[250,1700]},{ref:8580,wt:[210,-200],wind:[-470,1570],temp:[320,-250],vref:360,rev:[450,1230]},{ref:8940,wt:[240,-210],wind:[-500,1690],temp:[380,-260],vref:370,rev:[990,1280]}],1:[{ref:9300,wt:[230,-200],wind:[-630,2430],temp:[390,-270],vref:320,rev:[1970,6360]},{ref:9310,wt:[230,-200],wind:[-630,2430],temp:[390,-270],vref:340,rev:[1970,6350]},{ref:9560,wt:[230,-210],wind:[-650,2460],temp:[360,-280],vref:380,rev:[1730,6120]},{ref:9820,wt:[240,-220],wind:[-660,2500],temp:[390,-290],vref:360,rev:[1600,5860]},{ref:9990,wt:[250,-230],wind:[-670,2530],temp:[420,-300],vref:370,rev:[1850,5700]}]},30:{6:[{ref:5370,wt:[110,-90],wind:[-270,880],temp:[140,-140],vref:310,rev:[0,0]},{ref:6510,wt:[150,-120],wind:[-340,1130],temp:[190,-190],vref:380,rev:[0,0]},{ref:7410,wt:[170,-150],wind:[-400,1330],temp:[220,-220],vref:410,rev:[0,0]},{ref:8080,wt:[200,-180],wind:[-440,1500],temp:[290,-240],vref:390,rev:[260,260]},{ref:8590,wt:[230,-190],wind:[-490,1660],temp:[360,-260],vref:380,rev:[840,900]}],5:[{ref:5510,wt:[130,-90],wind:[-270,1050],temp:[170,-150],vref:300,rev:[200,560]},{ref:6620,wt:[150,-120],wind:[-350,1160],temp:[190,-190],vref:390,rev:[0,0]},{ref:7470,wt:[170,-150],wind:[-400,1340],temp:[220,-220],vref:420,rev:[10,10]},{ref:8130,wt:[200,-180],wind:[-450,1520],temp:[300,-240],vref:390,rev:[280,280]},{ref:8590,wt:[230,-190],wind:[-490,1670],temp:[360,-260],vref:390,rev:[840,900]}],4:[{ref:5950,wt:[130,-100],wind:[-320,1120],temp:[190,-160],vref:290,rev:[370,910]},{ref:6710,wt:[150,-120],wind:[-360,1230],temp:[190,-190],vref:390,rev:[70,350]},{ref:7470,wt:[170,-150],wind:[-400,1350],temp:[220,-220],vref:420,rev:[30,100]},{ref:8130,wt:[200,-180],wind:[-400,1400],temp:[290,-240],vref:400,rev:[270,270]},{ref:8590,wt:[230,-190],wind:[-490,1660],temp:[360,-260],vref:380,rev:[840,900]}],3:[{ref:6330,wt:[140,-120],wind:[-360,1260],temp:[210,-170],vref:290,rev:[500,1260]},{ref:6890,wt:[150,-120],wind:[-380,1340],temp:[200,-200],vref:380,rev:[190,890]},{ref:7590,wt:[170,-150],wind:[-420,1440],temp:[220,-220],vref:410,rev:[90,410]},{ref:8150,wt:[200,-180],wind:[-450,1540],temp:[290,-240],vref:390,rev:[320,440]},{ref:8590,wt:[230,-190],wind:[-490,1660],temp:[360,-260],vref:390,rev:[840,920]}],2:[{ref:7030,wt:[190,-150],wind:[-450,1610],temp:[290,-220],vref:320,rev:[810,2200]},{ref:7220,wt:[180,-140],wind:[-430,1480],temp:[230,-210],vref:330,rev:[620,2000]},{ref:7820,wt:[180,-160],wind:[-450,1470],temp:[230,-230],vref:380,rev:[220,1440]},{ref:8300,wt:[200,-190],wind:[-470,1550],temp:[300,-240],vref:360,rev:[370,960]},{ref:8670,wt:[230,-190],wind:[-490,1670],temp:[360,-260],vref:370,rev:[870,1070]}],1:[{ref:9070,wt:[230,-190],wind:[-630,2420],temp:[370,-260],vref:320,rev:[1850,5830]},{ref:9070,wt:[230,-180],wind:[-630,2420],temp:[370,-260],vref:330,rev:[1850,5830]},{ref:9300,wt:[230,-190],wind:[-640,2450],temp:[350,-270],vref:380,rev:[1650,5630]},{ref:9560,wt:[240,-210],wind:[-650,2490],temp:[370,-280],vref:360,rev:[1490,5370]},{ref:9720,wt:[250,-210],wind:[-660,2520],temp:[400,-290],vref:370,rev:[1720,5200]}]}},
+    "787-9":{ref:420000,25:{6:[{ref:6130,wt:[110,-120],wind:[-280,910],temp:[160,-170],vref:320,rev:[0,10]},{ref:7500,wt:[140,-150],wind:[-360,1200],temp:[220,-220],vref:410,rev:[0,0]},{ref:8650,wt:[170,-190],wind:[-430,1430],temp:[260,-260],vref:440,rev:[20,20]},{ref:9400,wt:[200,-220],wind:[-480,1610],temp:[310,-280],vref:410,rev:[340,340]},{ref:10150,wt:[230,-240],wind:[-540,1830],temp:[440,-300],vref:410,rev:[1180,1380]}],5:[{ref:6320,wt:[130,-120],wind:[-300,1160],temp:[210,-180],vref:320,rev:[290,650]},{ref:7640,wt:[140,-150],wind:[-370,1240],temp:[220,-220],vref:420,rev:[0,0]},{ref:8740,wt:[170,-190],wind:[-440,1450],temp:[270,-260],vref:440,rev:[30,30]},{ref:9450,wt:[200,-220],wind:[-490,1620],temp:[350,-280],vref:420,rev:[360,360]},{ref:10150,wt:[240,-240],wind:[-540,1840],temp:[440,-300],vref:410,rev:[1180,1380]}]},30:{6:[{ref:5850,wt:[100,-110],wind:[-270,900],temp:[160,-160],vref:320,rev:[0,10]},{ref:7100,wt:[130,-140],wind:[-350,1170],temp:[200,-210],vref:420,rev:[0,0]},{ref:8190,wt:[160,-170],wind:[-420,1400],temp:[240,-240],vref:450,rev:[0,0]},{ref:9000,wt:[190,-200],wind:[-470,1580],temp:[310,-270],vref:420,rev:[200,200]},{ref:9810,wt:[220,-230],wind:[-540,1820],temp:[410,-290],vref:410,rev:[950,1060]}],5:[{ref:6030,wt:[130,-110],wind:[-300,1150],temp:[200,-170],vref:320,rev:[250,550]},{ref:7240,wt:[130,-140],wind:[-360,1210],temp:[210,-210],vref:410,rev:[0,0]},{ref:8290,wt:[160,-170],wind:[-430,1420],temp:[250,-250],vref:450,rev:[0,0]},{ref:9050,wt:[190,-200],wind:[-480,1600],temp:[320,-270],vref:430,rev:[210,210]},{ref:9810,wt:[220,-230],wind:[-540,1820],temp:[410,-300],vref:420,rev:[950,1060]}]}},
 };
 
-// TAFキャッシュ
-let tafCache = {};
+const BT = {
+    "787-8":{25:[{w:380,nm1:{1:11.4,2:"C",3:"C"},nm2:{1:2.6,2:"C",3:"C"}},{w:370,nm1:{1:22.3,2:1.3,3:"C"},nm2:{1:13.5,2:"C",3:"C"}},{w:360,nm1:{1:38.0,2:12.2,3:"C"},nm2:{1:24.8,2:3.4,3:"C"}},{w:350,nm1:{1:40,2:27.6,3:12.9},nm2:{1:40,2:17.9,3:4.2}},{w:345,nm1:{1:40,2:40,3:20.3},nm2:{1:40,2:26.0,3:11.6}},{w:340,nm1:{2:40,3:28.8,4:14.2},nm2:{2:38.1,3:18.9,4:5.8}},{w:335,nm1:{2:40,3:40,4:22.2},nm2:{2:40,3:27.5,4:13.3}},{w:330,nm1:{2:40,3:40,4:31.8},nm2:{2:40,3:40,4:21.3}},{w:325,nm1:{2:40,3:40,4:40},nm2:{2:40,3:40,4:37.6}},{w:320,nm1:{2:40,3:40,4:40},nm2:{2:40,3:40,4:40}}],30:[{w:380,nm1:{1:21.5,2:0.7,3:"C"},nm2:{1:12.8,2:"C",3:"C"}},{w:370,nm1:{1:36.4,2:11.5,3:"C"},nm2:{1:23.9,2:2.6,3:"C"}},{w:360,nm1:{1:40,2:26.6,3:12.1},nm2:{1:40,2:17.1,3:3.4}},{w:350,nm1:{1:40,2:40,3:27.8},nm2:{1:40,2:36.3,3:18.1}},{w:345,nm1:{1:40,2:40,3:40},nm2:{1:40,2:40,3:26.4}},{w:340,nm1:{2:40,3:40,4:29.9},nm2:{2:40,3:39.4,4:19.9}},{w:335,nm1:{2:40,3:40,4:40},nm2:{2:40,3:40,4:28.9}},{w:330,nm1:{2:40,3:40,4:40},nm2:{2:40,3:40,4:40}}]},
+    "787-9":{25:[{w:425,nm1:{1:"C",2:"C",3:"C"},nm2:{1:"C",2:"C",3:"C"}},{w:400,nm1:{1:26.8,2:"C"},nm2:{1:18.4,2:"C"}},{w:390,nm1:{1:40,2:9.1},nm2:{1:34.4,2:1.2}},{w:385,nm1:{1:40,2:15.7,3:0.5},nm2:{1:40,2:8.0,3:"C"}},{w:380,nm1:{2:22.9,3:7.4,4:"C"},nm2:{2:14.7,3:"C",4:"C"}},{w:375,nm1:{2:30.8,3:14.2,4:"C"},nm2:{2:21.9,3:6.5,4:"C"}},{w:370,nm1:{2:40,3:21.4,4:6.4},nm2:{2:29.6,3:13.5,4:"C"}},{w:365,nm1:{2:40,3:29.2,4:13.4},nm2:{2:40,3:20.7,4:5.7}},{w:360,nm1:{2:40,3:40,4:20.8},nm2:{2:40,3:28.5,4:12.9}},{w:355,nm1:{2:40,3:40,4:28.6},nm2:{2:40,3:40,4:20.3}},{w:350,nm1:{2:40,3:40,4:40},nm2:{2:40,3:40,4:28.2}},{w:340,nm1:{2:40,3:40,4:40},nm2:{2:40,3:40,4:40}}],30:[{w:425,nm1:{1:12.5},nm2:{1:4.5}},{w:400,nm1:{1:40,2:11.6},nm2:{1:38.8,2:3.8}},{w:390,nm1:{1:40,2:25.7,3:10.0},nm2:{1:40,2:17.4,3:2.3}},{w:385,nm1:{1:40,2:35.2,3:16.9},nm2:{1:40,2:24.7,3:9.2}},{w:380,nm1:{2:40,3:24.3,4:9.1},nm2:{2:33.8,3:16.2,4:1.4}},{w:375,nm1:{2:40,3:33.3,4:16.2},nm2:{2:40,3:23.6,4:8.4}},{w:370,nm1:{2:40,3:40,4:23.6},nm2:{2:40,3:32.3,4:15.7}},{w:365,nm1:{2:40,3:40,4:32.6},nm2:{2:40,3:40,4:23.1}},{w:360,nm1:{2:40,3:40,4:40},nm2:{2:40,3:40,4:31.9}},{w:350,nm1:{2:40,3:40,4:40},nm2:{2:40,3:40,4:40}}]}
+};
 
-// ============================================================
-// FCST GMT
-// ============================================================
-function stepFcst(dir) {
-    const maxH = tafCache[state.apt]?.groups?.length
-        ? tafCache[state.apt].groups.length - 1 : 23;
-    state.fcstOffsetHours = Math.max(0, Math.min(maxH, state.fcstOffsetHours + dir));
-    renderTaf();
-    updateFcstLabel();
-    updateDisplay();
-}
+// ================================================================
+// STATE
+// ================================================================
+let S = {
+    model:'787-8', flap:25, brk:2, cond:6, wind:0,
+    oat:15, qnh:29.92, unit:'inHg', vref:5,
+    apt:'HND', rwy:'34L', wgt:320000, fcst:0
+};
+let TAF_CACHE = {};   // { icao: { hdr, lines:[{text,day,hour}] } }
 
-function updateFcstLabel() {
-    const el = document.getElementById('fcst-time-val');
-    if (state.fcstOffsetHours === 0) {
-        el.innerText = 'NOW';
-    } else {
-        const t = new Date();
-        t.setUTCHours(t.getUTCHours() + state.fcstOffsetHours, 0, 0, 0);
-        el.innerText = String(t.getUTCHours()).padStart(2,'0') + ':00Z';
-    }
-}
-
-// ============================================================
-// TAF取得・パース・表示
-// ============================================================
+// ================================================================
+// TAF FETCH & PARSE
+// ================================================================
 async function fetchTaf(icao) {
-    const icao4 = icaoMap[icao] || icao;
-    const url = `https://aviationweather.gov/api/data/taf?ids=${icao4}&format=json&metar=false`;
+    const id = ICAO4[icao] || icao;
     try {
-        const res = await fetch(url);
-        if (!res.ok) return null;
-        const data = await res.json();
-        if (!data || data.length === 0) return null;
-        return parseTaf(data[0]);
+        const r = await fetch(`https://aviationweather.gov/api/data/taf?ids=${id}&format=json&metar=false`);
+        if (!r.ok) return null;
+        const d = await r.json();
+        if (!Array.isArray(d) || d.length === 0) return null;
+        return parseTaf(d[0], icao);
     } catch(e) { return null; }
 }
 
-function parseTaf(taf) {
-    const raw = (taf.rawTAF || taf.raw_text || taf.tafText || '').trim();
+function parseTaf(obj, icao) {
+    // rawTAF または raw_text を取得
+    const raw = (obj.rawTAF || obj.raw_text || obj.tafText || '').trim();
     if (!raw) return null;
-    const issueTime = taf.issueTime || taf.issue_time || '';
+    const issued = obj.issueTime || obj.issue_time || '';
 
-    // BECMG / TEMPO / FM / PROB の前で改行
-    const formatted = raw
-        .replace(/\s+(BECMG|TEMPO|FM\d{6}|PROB\d{2})\s+/g, '\n  $1 ')
+    // BECMG / TEMPO / FM / PROB の前で改行してフォーマット
+    const fmt = raw
+        .replace(/\s+(BECMG|TEMPO|FM\d{6}|PROB\d{2}(?:\s+TEMPO)?)\s+/g, '\n  $1 ')
         .trim();
 
-    const lines = formatted.split('\n').map(l => l.trimEnd());
-
-    // 各行に時刻情報を付与（ハイライト判定用）
-    const groups = lines.map(line => {
-        const t = line.trim();
-        const baseM  = t.match(/^\w{4}\s+\d{6}Z\s+(\d{2})(\d{2})\/\d{4}/);
-        const becmgM = t.match(/^(BECMG|TEMPO)\s+(\d{2})(\d{2})\/\d{4}/);
-        const fmM    = t.match(/^FM(\d{2})(\d{2})\d{2}/);
-        let fromDay=null, fromHour=null;
-        if (baseM)  { fromDay=parseInt(baseM[1]);  fromHour=parseInt(baseM[2]); }
-        if (becmgM) { fromDay=parseInt(becmgM[2]); fromHour=parseInt(becmgM[3]); }
-        if (fmM)    { fromDay=parseInt(fmM[1]);    fromHour=parseInt(fmM[2]); }
-        return { text: line, fromDay, fromHour };
+    const lines = fmt.split('\n').map(l => {
+        const t = l.trim();
+        // 各行の開始時刻を抽出
+        let day = null, hour = null;
+        const bm = t.match(/^\w{4}\s+\d{6}Z\s+(\d{2})(\d{2})\/\d{4}/);
+        const sm = t.match(/^(BECMG|TEMPO)\s+(\d{2})(\d{2})\/\d{4}/);
+        const fm = t.match(/^FM(\d{2})(\d{2})\d{2}/);
+        if (bm)  { day = +bm[1]; hour = +bm[2]; }
+        if (sm)  { day = +sm[2]; hour = +sm[3]; }
+        if (fm)  { day = +fm[1]; hour = +fm[2]; }
+        // 風情報
+        const wm = t.match(/(\d{3}|VRB)(\d{2,3})(G\d{2,3})?KT/);
+        return {
+            text: l,
+            day, hour,
+            wdir: wm && wm[1] !== 'VRB' ? +wm[1] : null,
+            wspd: wm ? +wm[2] : null
+        };
     });
 
-    return { issueTime, groups };
+    return { hdr: `TAF ${ICAO4[icao]||icao}  ${issued}`, lines };
 }
 
-function getActiveTafIndex(groups) {
+function activeLineIdx() {
+    const taf = TAF_CACHE[S.apt];
+    if (!taf) return -1;
     const now = new Date();
-    const targetDay  = now.getUTCDate() + Math.floor((now.getUTCHours() + state.fcstOffsetHours) / 24);
-    const targetHour = (now.getUTCHours() + state.fcstOffsetHours) % 24;
+    const tDay  = now.getUTCDate()  + Math.floor((now.getUTCHours() + S.fcst) / 24);
+    const tHour = (now.getUTCHours() + S.fcst) % 24;
     let idx = 0;
-    for (let i = 0; i < groups.length; i++) {
-        const g = groups[i];
-        if (g.fromDay === null) continue;
-        if (g.fromDay < targetDay || (g.fromDay === targetDay && g.fromHour <= targetHour)) {
-            idx = i;
-        }
-    }
+    taf.lines.forEach((l, i) => {
+        if (l.day === null) return;
+        if (l.day < tDay || (l.day === tDay && l.hour <= tHour)) idx = i;
+    });
     return idx;
 }
 
 function renderTaf() {
-    const box     = document.getElementById('taf-box');
+    const box   = document.getElementById('taf-box');
+    const hdrEl = document.getElementById('taf-hdr');
     const linesEl = document.getElementById('taf-lines');
-    const labelEl = document.getElementById('taf-label');
-    const taf = tafCache[state.apt];
-    if (!taf || !taf.groups || taf.groups.length === 0) {
-        box.style.display = 'none';
-        return;
-    }
+    const taf = TAF_CACHE[S.apt];
+    if (!taf) { box.style.display = 'none'; return; }
     box.style.display = 'block';
-    labelEl.innerText = `TAF ${icaoMap[state.apt] || state.apt}  ${taf.issueTime}`;
-    const activeIdx = getActiveTafIndex(taf.groups);
+    hdrEl.textContent = taf.hdr;
+    const ai = activeLineIdx();
     linesEl.innerHTML = '';
-    taf.groups.forEach((g, i) => {
-        const div = document.createElement('div');
-        div.className = 'taf-line' + (i === activeIdx ? ' taf-active' : '');
-        div.innerText = g.text;
-        linesEl.appendChild(div);
+    taf.lines.forEach((l, i) => {
+        const d = document.createElement('span');
+        d.className = 'taf-line' + (i === ai ? ' hi' : '');
+        d.textContent = l.text;
+        linesEl.appendChild(d);
     });
 }
 
-// ============================================================
-// QNH単位
-// ============================================================
-function setQnhUnit(unit) {
-    if (state.qnhUnit === unit) return;
-    state.qnh = unit==='hPa' ? Math.round(state.qnh/0.02953) : parseFloat((state.qnh*0.02953).toFixed(2));
-    state.qnhUnit = unit;
-    document.getElementById('btn-inhg').classList.toggle('active', unit==='inHg');
-    document.getElementById('btn-hpa').classList.toggle('active', unit==='hPa');
-    updateDisplay();
-}
-function isinHg() { return state.qnhUnit === 'inHg'; }
-
-// ============================================================
-// カスタムドロップダウン
-// ============================================================
-function getColorClass(c) {
-    if (c==='JP') return 'col-jp'; if (c==='KR') return 'col-kr'; if (c==='TW') return 'col-tw';
-    if (c==='CN'||c==='HK') return 'col-cn'; if (c==='US') return 'col-us'; return 'col-sea';
-}
-function buildAptDropdown() {
-    const dd = document.getElementById('apt-dropdown');
-    dd.innerHTML = '';
-    Object.keys(airportData).forEach(icao => {
-        const opt = document.createElement('div');
-        opt.className = `custom-select-option ${getColorClass(airportData[icao].c)}`;
-        opt.dataset.value = icao;
-        opt.innerText = icao;
-        opt.onclick = e => { e.stopPropagation(); selectApt(icao); };
-        dd.appendChild(opt);
-    });
-}
-function toggleAptDropdown(e) {
-    e.stopPropagation();
-    const dd = document.getElementById('apt-dropdown');
-    const tr = document.getElementById('apt-trigger');
-    const wasOpen = dd.classList.contains('open');
-    closeAptDropdown();
-    if (!wasOpen) {
-        const rect = tr.getBoundingClientRect();
-        dd.style.top = (rect.bottom+4)+'px';
-        dd.style.left = rect.left+'px';
-        dd.style.width = Math.max(rect.width,140)+'px';
-        dd.classList.add('open');
-    }
-}
-function closeAptDropdown() { document.getElementById('apt-dropdown').classList.remove('open'); }
-document.addEventListener('click', closeAptDropdown);
-
-function selectApt(icao) {
-    state.apt = icao;
-    state.fcstOffsetHours = 0;
-    state.rwyManual = false;
-    const tt = document.getElementById('apt-trigger-text');
-    tt.className = getColorClass(airportData[icao].c);
-    tt.innerText = icao;
-    document.querySelectorAll('.custom-select-option').forEach(el =>
-        el.classList.toggle('selected', el.dataset.value===icao));
-    closeAptDropdown();
-    onAirportChange(false);
+// ================================================================
+// WIND CALC FROM TAF
+// ================================================================
+function calcWindFromTaf() {
+    const taf = TAF_CACHE[S.apt];
+    if (!taf) return;
+    const ai = activeLineIdx();
+    if (ai < 0) return;
+    const line = taf.lines[ai];
+    if (line.wdir === null || line.wspd === null) return;
+    const rwyDeg = parseInt(S.rwy.replace(/[LRC]/g,'')) * 10;
+    const diff = ((line.wdir - rwyDeg + 360) % 360);
+    const angle = diff > 180 ? diff - 360 : diff;
+    S.wind = Math.round(line.wspd * Math.cos(angle * Math.PI / 180));
 }
 
-// ============================================================
-// 保存・復元
-// ============================================================
-function saveState() {
-    localStorage.setItem('perf_state_v54', JSON.stringify(state));
-    localStorage.setItem('taf_cache_v2', JSON.stringify(tafCache));
-}
-function loadState() {
-    try { const t=localStorage.getItem('taf_cache_v2'); if(t) tafCache=JSON.parse(t); } catch(e){}
-    try { const s=localStorage.getItem('perf_state_v54'); if(s) Object.assign(state, JSON.parse(s)); } catch(e){}
-    document.getElementById('btn-inhg').classList.toggle('active', state.qnhUnit==='inHg');
-    document.getElementById('btn-hpa').classList.toggle('active', state.qnhUnit==='hPa');
-    selectApt(state.apt);
-    onAirportChange(true);
-}
-
-// ============================================================
-// TAF一括取得
-// ============================================================
 async function fetchAllTaf() {
-    const statusEl = document.getElementById('taf-status');
-    if (statusEl) statusEl.innerText = 'FETCHING TAF...';
-    const icaos = Object.keys(airportData);
-    const results = await Promise.allSettled(icaos.map(icao => fetchTaf(icao)));
+    setStatus('FETCHING TAF...');
+    const keys = Object.keys(APTS);
+    const results = await Promise.allSettled(keys.map(k => fetchTaf(k)));
     results.forEach((r, i) => {
-        if (r.status === 'fulfilled' && r.value) tafCache[icaos[i]] = r.value;
+        if (r.status === 'fulfilled' && r.value) TAF_CACHE[keys[i]] = r.value;
     });
-    localStorage.setItem('taf_cache_v2', JSON.stringify(tafCache));
+    save();
+    setStatus('TAF UPDATED');
     calcWindFromTaf();
     renderTaf();
-    updateDisplay();
+    draw();
 }
 
-// ============================================================
-// 向かい風計算（TAFのアクティブ行から）
-// ============================================================
-function calcWindFromTaf() {
-    const taf = tafCache[state.apt];
-    if (!taf || !taf.groups) return;
-    const activeIdx = getActiveTafIndex(taf.groups);
-    const g = taf.groups[activeIdx];
-    if (!g) return;
-
-    // 風情報をテキストから抽出
-    const wm = g.text.match(/(\d{3}|VRB)(\d{2,3})(G\d{2,3})?KT/);
-    if (!wm || wm[1] === 'VRB') return;
-
-    const windDir = parseInt(wm[1]);
-    const windSpd = parseInt(wm[2]);
-    if (!state.rwy) return;
-
-    const rwyDeg = parseInt(state.rwy.replace(/[LRC]/g,'')) * 10;
-    const diff = ((windDir - rwyDeg + 360) % 360);
-    const angle = diff > 180 ? diff - 360 : diff;
-    // cos: headwind=正、tailwind=負 → state.windは正=H、負=T
-    state.wind = Math.round(windSpd * Math.cos(angle * Math.PI / 180));
+// ================================================================
+// FCST GMT
+// ================================================================
+function stepFcst(d) {
+    const taf = TAF_CACHE[S.apt];
+    const max = taf ? taf.lines.length - 1 : 23;
+    S.fcst = Math.max(0, Math.min(max, S.fcst + d));
+    updateFcstLabel();
+    renderTaf();
+    calcWindFromTaf();
+    draw();
+}
+function updateFcstLabel() {
+    const el = document.getElementById('fcst-val');
+    if (S.fcst === 0) { el.textContent = 'NOW'; return; }
+    const t = new Date();
+    t.setUTCHours(t.getUTCHours() + S.fcst, 0, 0, 0);
+    el.textContent = String(t.getUTCHours()).padStart(2,'0') + ':00Z';
 }
 
-// ============================================================
-// 空港変更
-// ============================================================
-function onAirportChange(isLoad=false) {
-    state.apt = document.getElementById('apt-trigger-text').innerText;
-    const rwySelect = document.getElementById('rwy-select');
-    rwySelect.innerHTML = '';
-    Object.keys(airportData[state.apt].r).forEach(r => {
-        const o = document.createElement('option'); o.value=r; o.innerText=r; rwySelect.appendChild(o);
+// ================================================================
+// QNH UNIT
+// ================================================================
+function setUnit(u) {
+    if (S.unit === u) return;
+    S.qnh = u === 'hPa' ? Math.round(S.qnh / 0.02953) : parseFloat((S.qnh * 0.02953).toFixed(2));
+    S.unit = u;
+    document.getElementById('u-inhg').classList.toggle('on', u === 'inHg');
+    document.getElementById('u-hpa').classList.toggle('on', u === 'hPa');
+    draw();
+}
+function inHg() { return S.unit === 'inHg'; }
+
+// ================================================================
+// AIRPORT DROPDOWN
+// ================================================================
+function colClass(c) {
+    if (c==='JP') return 'jp'; if (c==='KR') return 'kr'; if (c==='TW') return 'tw';
+    if (c==='CN'||c==='HK') return 'cn'; if (c==='US') return 'us'; return 'sea';
+}
+function buildDD() {
+    const list = document.getElementById('dd-list');
+    Object.keys(APTS).forEach(k => {
+        const d = document.createElement('div');
+        d.className = `dd-item ${colClass(APTS[k].c)}`;
+        d.dataset.v = k;
+        d.textContent = k;
+        d.onclick = e => { e.stopPropagation(); pickApt(k); };
+        list.appendChild(d);
     });
-    if (isLoad && airportData[state.apt].r[state.rwy]) {
-        rwySelect.value = state.rwy;
-    } else {
-        state.rwy = Object.keys(airportData[state.apt].r)[0];
-        if (state.apt === 'ITM') state.rwy = '32L';
-        rwySelect.value = state.rwy;
+}
+function ddToggle(e) {
+    e.stopPropagation();
+    const list = document.getElementById('dd-list');
+    const tr   = document.getElementById('dd-trigger');
+    const open = list.classList.contains('open');
+    ddClose();
+    if (!open) {
+        const r = tr.getBoundingClientRect();
+        list.style.top   = (r.bottom + 4) + 'px';
+        list.style.left  = r.left + 'px';
+        list.style.width = Math.max(r.width, 140) + 'px';
+        list.classList.add('open');
     }
-    if (!isLoad) {
-        state.fcstOffsetHours = 0;
-        state.rwyManual = false;
+}
+function ddClose() { document.getElementById('dd-list').classList.remove('open'); }
+document.addEventListener('click', ddClose);
+
+function pickApt(icao) {
+    S.apt = icao; S.fcst = 0;
+    const v = document.getElementById('dd-val');
+    v.className = colClass(APTS[icao].c);
+    v.textContent = icao;
+    document.querySelectorAll('.dd-item').forEach(el => el.classList.toggle('sel', el.dataset.v === icao));
+    ddClose();
+    buildRwyList(false);
+}
+
+// ================================================================
+// RWY
+// ================================================================
+function buildRwyList(isLoad) {
+    const sel = document.getElementById('rwy');
+    sel.innerHTML = '';
+    Object.keys(APTS[S.apt].r).forEach(r => {
+        const o = document.createElement('option'); o.value = r; o.textContent = r; sel.appendChild(o);
+    });
+    if (isLoad && APTS[S.apt].r[S.rwy]) {
+        sel.value = S.rwy;
+    } else {
+        S.rwy = S.apt === 'ITM' ? '32L' : Object.keys(APTS[S.apt].r)[0];
+        sel.value = S.rwy;
     }
     updateFcstLabel();
     renderTaf();
-    updateDisplay();
+    calcWindFromTaf();
+    draw();
 }
 
 function onRwyChange() {
-    state.rwy = document.getElementById('rwy-select').value;
-    state.rwyManual = true;
+    S.rwy = document.getElementById('rwy').value;
     calcWindFromTaf();
-    updateDisplay();
+    draw();
 }
 
-// ============================================================
-// ステップ
-// ============================================================
-function step(field, amt) {
-    if (field==='wgt') state.wgt += 1000*amt;
-    else if (field==='qnh') {
-        const s = isinHg() ? (Math.abs(amt)===10?0.1:0.01) : (Math.abs(amt)===10?10:1);
-        state.qnh = parseFloat((state.qnh+(amt>0?s:-s)).toFixed(2));
+// ================================================================
+// SAVE / LOAD
+// ================================================================
+function save() {
+    localStorage.setItem('s787v55', JSON.stringify(S));
+    localStorage.setItem('taf787v3', JSON.stringify(TAF_CACHE));
+}
+function load() {
+    try { const t = localStorage.getItem('taf787v3'); if (t) TAF_CACHE = JSON.parse(t); } catch(e){}
+    try { const s = localStorage.getItem('s787v55'); if (s) Object.assign(S, JSON.parse(s)); } catch(e){}
+    document.getElementById('u-inhg').classList.toggle('on', S.unit === 'inHg');
+    document.getElementById('u-hpa').classList.toggle('on', S.unit === 'hPa');
+    // 空港選択を復元
+    const v = document.getElementById('dd-val');
+    v.className = colClass(APTS[S.apt].c);
+    v.textContent = S.apt;
+    document.querySelectorAll('.dd-item').forEach(el => el.classList.toggle('sel', el.dataset.v === S.apt));
+    buildRwyList(true);
+}
+
+// ================================================================
+// INPUT ADJUSTMENTS
+// ================================================================
+function adj(f, a) {
+    if (f==='wgt') S.wgt += 1000*a;
+    else if (f==='qnh') {
+        const s = inHg() ? (Math.abs(a)===10?0.1:0.01) : (Math.abs(a)===10?10:1);
+        S.qnh = parseFloat((S.qnh + (a>0?s:-s)).toFixed(2));
     }
-    else if (field==='cond') state.cond=Math.max(1,Math.min(6,state.cond+amt));
-    else if (field==='brks') state.brksIdx=Math.max(0,Math.min(4,state.brksIdx+amt));
-    else if (field==='vref') state.vref=Math.max(0,Math.min(20,state.vref+amt));
-    else if (field==='wind') state.wind+=amt;
-    else if (field==='oat')  state.oat+=amt;
-    updateDisplay();
+    else if (f==='cond') S.cond = Math.max(1, Math.min(6, S.cond+a));
+    else if (f==='brk')  S.brk  = Math.max(0, Math.min(4, S.brk+a));
+    else if (f==='vref') S.vref = Math.max(0, Math.min(20, S.vref+a));
+    else if (f==='wind') S.wind += a;
+    else if (f==='oat')  S.oat  += a;
+    else if (f==='brks') S.brk  = Math.max(0, Math.min(4, S.brk+a));
+    draw();
 }
+function setModel(m) { S.model=m; S.wgt=(m==='787-8'?320000:360000); draw(); }
+function setFlap(f)  { S.flap=f; draw(); }
 
-// ============================================================
-// 計算
-// ============================================================
-function inferValue(dp, n) {
-    if (dp[n]!==undefined) return dp[n];
-    const keys=Object.keys(dp).map(Number).sort((a,b)=>a-b);
-    return n<keys[0]?40.0:"Ctn";
-}
-function getBrakeTempLimit(dk, n) {
-    const da=brakeTempData[state.model][state.flap]; if(!da) return "-";
-    const tW=state.wgt/1000;
-    if (tW>da[0].w) return "-"; if (tW<=da[da.length-1].w) return 40.0;
-    const ui=da.findIndex((d,i)=>d.w>=tW&&da[i+1]?.w<tW);
+// ================================================================
+// BRAKE TEMP
+// ================================================================
+function btLim(dk, n) {
+    const da = BT[S.model][S.flap]; if (!da) return '-';
+    const tw = S.wgt/1000;
+    if (tw > da[0].w) return '-';
+    if (tw <= da[da.length-1].w) return 40;
+    const ui = da.findIndex((d,i) => d.w>=tw && da[i+1]?.w<tw);
     const U=da[ui]||da[0], L=da[ui+1]||U;
-    const vU=inferValue(U[dk],n), vL=inferValue(L[dk],n);
-    if(vU==="Ctn"||vL==="Ctn") return "Ctn";
+    function iv(dp,nb) { if(dp[nb]!==undefined)return dp[nb]; const ks=Object.keys(dp).map(Number).sort((a,b)=>a-b); return nb<ks[0]?40:'C'; }
+    const vU=iv(U[dk],n), vL=iv(L[dk],n);
+    if(vU==='C'||vL==='C') return 'C';
     if(U===L) return vU;
-    return vL+(vU-vL)*(tW-L.w)/(U.w-L.w);
+    return vL + (vU-vL)*(tw-L.w)/(U.w-L.w);
 }
-function formatBrakeTemp(lim) {
-    if(lim==="-") return "-"; if(lim==="Ctn") return '<span class="bt-caution">CTN</span>';
-    const c=state.oat>lim; const dv=lim>=40?"40.0":lim.toFixed(1);
-    return `<span class="${c?'bt-caution':'bt-safe'}">${dv}</span>`;
+function fmtBt(lim) {
+    if(lim==='-') return '-';
+    if(lim==='C') return '<span class="bt-ng">CTN</span>';
+    const bad = S.oat > lim;
+    return `<span class="${bad?'bt-ng':'bt-ok'}">${lim>=40?'40.0':lim.toFixed(1)}</span>`;
 }
 
-function calculateAll() {
-    const n1Base={"787-8":{25:{260:38.2,380:45.5},30:{260:42.1,380:49.7}},"787-9":{25:{300:40.3,420:47.4},30:{300:45.2,420:52.7}}};
-    const tN1=n1Base[state.model][state.flap];
-    const rs=state.model==='787-8'?260:300, re=state.model==='787-8'?380:420;
-    const wL=state.wgt/1000;
-    const n1=tN1[rs]+(tN1[re]-tN1[rs])*((wL-rs)/120)+(state.oat-15)/10+(state.wind>0?state.wind/10*1.5:0)+(state.vref-5)/5*1.5;
-    document.getElementById('res-n1').innerText=n1.toFixed(1);
+// ================================================================
+// STATUS HELPER
+// ================================================================
+function setStatus(msg) { document.getElementById('status').textContent = msg; }
 
-    const tbody=document.getElementById('ldg-body'); tbody.innerHTML='';
-    const labels=["1","2","3","4","MAX AUTO"], aomOrder=[4,3,2,1,0];
-    const mfd=ldgPerf[state.model][state.flap]||ldgPerf["787-8"][30];
-    const ct=mfd[state.cond]||mfd[6]||mfd[5];
-    const refW=ldgPerf[state.model]?.refWgt||380000;
-    const rev=document.getElementById('rev-select').value;
+// ================================================================
+// DRAW
+// ================================================================
+function draw() {
+    // N1
+    const n1b = {"787-8":{25:{260:38.2,380:45.5},30:{260:42.1,380:49.7}},"787-9":{25:{300:40.3,420:47.4},30:{300:45.2,420:52.7}}};
+    const tb = n1b[S.model][S.flap];
+    const rs=S.model==='787-8'?260:300, re=S.model==='787-8'?380:420;
+    const wl=S.wgt/1000;
+    const n1=tb[rs]+(tb[re]-tb[rs])*((wl-rs)/120)+(S.oat-15)/10+(S.wind>0?S.wind/10*1.5:0)+(S.vref-5)/5*1.5;
+    document.getElementById('res-n1').textContent = n1.toFixed(1);
 
-    const ab3=ct[aomOrder[2]]||ct[0];
-    let ab3d=ab3.ref+((state.wgt-refW)/10000)*(state.wgt>refW?ab3.wt[0]:Math.abs(ab3.wt[1]));
-    ab3d+=(state.wind>=0?(state.wind/10)*ab3.wind[0]:(Math.abs(state.wind)/10)*ab3.wind[1]);
-    ab3d+=(state.vref/5)*ab3.vref;
-    if(ab3.temp) ab3d+=((state.oat-15)/10)*(state.oat>15?ab3.temp[0]:ab3.temp[1]);
-    if(rev==='ONE') ab3d+=ab3.rev[0]; else if(rev==='NO') ab3d+=ab3.rev[1];
+    // 入力値表示
+    document.getElementById('v-cond').textContent = S.cond;
+    document.getElementById('v-brks').textContent = ["1","2","3","4","MAX AUTO"][S.brk];
+    document.getElementById('v-wind').textContent = (S.wind>=0?'H ':'T ')+Math.abs(S.wind);
+    document.getElementById('v-oat').textContent  = S.oat;
+    document.getElementById('v-qnh').textContent  = inHg()?S.qnh.toFixed(2):S.qnh;
+    document.getElementById('v-wgt').textContent  = (S.wgt/1000).toFixed(0)+'T';
+    document.getElementById('v-vref').textContent = S.vref;
+    document.getElementById('m8').className  = S.model==='787-8'?'on':'';
+    document.getElementById('m9').className  = S.model==='787-9'?'on':'';
+    document.getElementById('f25').className = S.flap===25?'on':'';
+    document.getElementById('f30').className = S.flap===30?'on':'';
 
-    const twys=twyData[state.apt]?.[state.rwy]||null;
-    const maxTwy=twys?Math.max(...twys.map(t=>t.d)):0;
+    // テーブル計算
+    const tbody = document.getElementById('tbody'); tbody.innerHTML='';
+    const LBL=["1","2","3","4","MAX AUTO"], ORD=[4,3,2,1,0];
+    const md = LDG[S.model]; if(!md) return;
+    const fl = md[S.flap]; if(!fl) return;
+    const ct = fl[S.cond] || fl[6] || fl[5];
+    const rW = md.ref||380000;
+    const rev = document.getElementById('rev').value;
 
-    labels.forEach((name,i)=>{
-        const d=ct[aomOrder[i]]||ct[0];
-        let dist=d.ref; const wD=(state.wgt-refW)/10000;
-        dist+=wD*(wD>0?d.wt[0]:Math.abs(d.wt[1]));
-        dist+=(state.wind>=0?(state.wind/10)*d.wind[0]:(Math.abs(state.wind)/10)*d.wind[1]);
-        dist+=(state.vref/5)*d.vref;
-        if(d.temp) dist+=((state.oat-15)/10)*(state.oat>15?d.temp[0]:d.temp[1]);
+    // AB3 dist for twy comparison
+    const ab3 = ct[ORD[2]]||ct[0];
+    let d3 = ab3.ref + ((S.wgt-rW)/10000)*(S.wgt>rW?ab3.wt[0]:Math.abs(ab3.wt[1]));
+    d3 += S.wind>=0?(S.wind/10)*ab3.wind[0]:(Math.abs(S.wind)/10)*ab3.wind[1];
+    d3 += (S.vref/5)*ab3.vref;
+    if(ab3.temp) d3+=((S.oat-15)/10)*(S.oat>15?ab3.temp[0]:ab3.temp[1]);
+    if(rev==='ONE') d3+=ab3.rev[0]; else if(rev==='NO') d3+=ab3.rev[1];
+
+    const twys = TWYS[S.apt]?.[S.rwy]||null;
+    const maxT = twys?Math.max(...twys.map(t=>t.d)):0;
+
+    LBL.forEach((nm,i)=>{
+        const d=ct[ORD[i]]||ct[0];
+        let dist=d.ref; const wd=(S.wgt-rW)/10000;
+        dist+=wd*(wd>0?d.wt[0]:Math.abs(d.wt[1]));
+        dist+=S.wind>=0?(S.wind/10)*d.wind[0]:(Math.abs(S.wind)/10)*d.wind[1];
+        dist+=(S.vref/5)*d.vref;
+        if(d.temp) dist+=((S.oat-15)/10)*(S.oat>15?d.temp[0]:d.temp[1]);
         if(rev==='ONE') dist+=d.rev[0]; else if(rev==='NO') dist+=d.rev[1];
-        let t1="-",t2="-";
-        if(name!=="MAX AUTO"){const n=parseInt(name);t1=formatBrakeTemp(getBrakeTempLimit("nm1",n));t2=formatBrakeTemp(getBrakeTempLimit("nm2",n));}
+        let t1='-',t2='-';
+        if(nm!=='MAX AUTO'){const n=parseInt(nm);t1=fmtBt(btLim('nm1',n));t2=fmtBt(btLim('nm2',n));}
         const tr=document.createElement('tr');
-        if(i===state.brksIdx) tr.className='active-row';
-        const tooLong=maxTwy>0&&dist>(maxTwy+1000);
-        tr.innerHTML=`<td>${name}</td><td class="${tooLong?'alert-cell':''}">${Math.round(dist).toLocaleString()}</td><td>${t1}</td><td>${t2}</td>`;
+        if(i===S.brk) tr.className='ar';
+        const tl=maxT>0&&dist>(maxT+1000);
+        tr.innerHTML=`<td>${nm}</td><td class="${tl?'al':''}">${Math.round(dist).toLocaleString()}</td><td>${t1}</td><td>${t2}</td>`;
         tbody.appendChild(tr);
     });
 
     if(twys){
         const sep=document.createElement('tr');
-        sep.innerHTML=`<td colspan="4" class="twy-header">VACATE DISTANCE (FT)</td>`;
+        sep.innerHTML=`<td colspan="4" class="twy-hdr">VACATE DISTANCE (FT)</td>`;
         tbody.appendChild(sep);
-        twys.forEach(twy=>{
+        twys.forEach(tw=>{
             const tr=document.createElement('tr');
-            const isHi=hiSpdTwy.includes(twy.n);
-            const short=twy.d<(ab3d-1000);
-            const cls=short?'alert-cell':(isHi?'twy-hi':'twy-norm');
-            tr.innerHTML=`<td class="${cls}">${twy.n}</td><td class="${cls}">${twy.d.toLocaleString()}</td><td></td><td></td>`;
+            const hi=HI_TWY.includes(tw.n);
+            const sh=tw.d<(d3-1000);
+            const cl=sh?'al':(hi?'hi-spd':'lo-spd');
+            tr.innerHTML=`<td class="${cl}">${tw.n}</td><td class="${cl}">${tw.d.toLocaleString()}</td><td></td><td></td>`;
             tbody.appendChild(tr);
         });
     }
-    saveState();
+    save();
 }
 
-// ============================================================
-// 表示更新
-// ============================================================
-function updateDisplay() {
-    document.getElementById('cond-val').innerText=state.cond;
-    document.getElementById('brks-val').innerText=["1","2","3","4","MAX AUTO"][state.brksIdx];
-    document.getElementById('wind-val').innerText=(state.wind>=0?"H ":"T ")+Math.abs(state.wind);
-    document.getElementById('oat-val').innerText=state.oat;
-    document.getElementById('qnh-val').innerText=isinHg()?state.qnh.toFixed(2):state.qnh;
-    document.getElementById('wgt-val').innerText=(state.wgt/1000).toFixed(0)+"T";
-    document.getElementById('vref-val').innerText=state.vref;
-    document.getElementById('m788').className=state.model==='787-8'?'active':'';
-    document.getElementById('m789').className=state.model==='787-9'?'active':'';
-    document.getElementById('f25').className=state.flap===25?'active':'';
-    document.getElementById('f30').className=state.flap===30?'active':'';
-    calculateAll();
+// ================================================================
+// SERVICE WORKER & INIT
+// ================================================================
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/787-LDG-Perf/sw.js').catch(()=>{});
 }
 
-function setModel(m){state.model=m;state.wgt=(m==='787-8'?320000:360000);updateDisplay();}
-function setFlap(f){state.flap=f;updateDisplay();}
-
-// ============================================================
-// Service Worker & 初期化
-// ============================================================
-if('serviceWorker' in navigator){
-    navigator.serviceWorker.register('/787-LDG-Perf/sw.js').catch(e=>console.log('SW:',e));
-}
-buildAptDropdown();
-loadState();
+buildDD();
+load();
 fetchAllTaf();
 </script>
 </body>

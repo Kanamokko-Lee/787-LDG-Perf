@@ -1,4 +1,4 @@
-const CACHE_NAME = '787-perf-v4';
+const CACHE_NAME = '787-perf-v5';
 const ASSETS = [
     '/787-LDG-Perf/',
     '/787-LDG-Perf/index.html',
