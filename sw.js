@@ -1,8 +1,9 @@
-const CACHE_NAME = '787-perf-v5';
+const CACHE_NAME = '787-perf-v6';
 const ASSETS = [
     '/787-LDG-Perf/',
     '/787-LDG-Perf/index.html',
-    '/787-LDG-Perf/manifest.json'
+    '/787-LDG-Perf/manifest.json',
+    '/787-LDG-Perf/taf.json'
 ];
 
 // インストール時にアプリ本体をキャッシュ

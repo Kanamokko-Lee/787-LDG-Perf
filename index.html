@@ -342,11 +342,11 @@ async function fetchTaf(icao) {
     } catch(e) { return null; }
 }
 
-function parseTaf(obj, icao) {
-    // rawTAF または raw_text を取得
-    const raw = (obj.rawTAF || obj.raw_text || obj.tafText || '').trim();
+function parseTaf(obj) {
+    // taf.json形式: { raw, issued } または aviationweather.gov形式
+    const raw = (obj.raw || obj.rawTAF || obj.raw_text || obj.tafText || '').trim();
     if (!raw) return null;
-    const issued = obj.issueTime || obj.issue_time || '';
+    const issued = obj.issued || obj.issueTime || obj.issue_time || '';
 
     // BECMG / TEMPO / FM / PROB の前で改行してフォーマット
     const fmt = raw
@@ -355,7 +355,6 @@ function parseTaf(obj, icao) {
 
     const lines = fmt.split('\n').map(l => {
         const t = l.trim();
-        // 各行の開始時刻を抽出
         let day = null, hour = null;
         const bm = t.match(/^\w{4}\s+\d{6}Z\s+(\d{2})(\d{2})\/\d{4}/);
         const sm = t.match(/^(BECMG|TEMPO)\s+(\d{2})(\d{2})\/\d{4}/);
@@ -363,17 +362,15 @@ function parseTaf(obj, icao) {
         if (bm)  { day = +bm[1]; hour = +bm[2]; }
         if (sm)  { day = +sm[2]; hour = +sm[3]; }
         if (fm)  { day = +fm[1]; hour = +fm[2]; }
-        // 風情報
         const wm = t.match(/(\d{3}|VRB)(\d{2,3})(G\d{2,3})?KT/);
         return {
-            text: l,
-            day, hour,
+            text: l, day, hour,
             wdir: wm && wm[1] !== 'VRB' ? +wm[1] : null,
             wspd: wm ? +wm[2] : null
         };
     });
 
-    return { hdr: `TAF ${ICAO4[icao]||icao}  ${issued}`, raw, lines };
+    return { hdr: issued, raw, lines };
 }
 
 function activeLineIdx() {
@@ -421,15 +418,22 @@ function calcWindFromTaf() {
 
 async function fetchAllTaf() {
     setStatus('FETCHING TAF...');
-    const keys = Object.keys(APTS);
-    const results = await Promise.allSettled(keys.map(k => fetchTaf(k)));
-    results.forEach((r, i) => {
-        if (r.status === 'fulfilled' && r.value) TAF_CACHE[keys[i]] = r.value;
-    });
-    save();
-    setStatus('TAF UPDATED');
-    calcWindFromTaf();
+    try {
+        const r = await fetch('/787-LDG-Perf/taf.json?t=' + Date.now());
+        if (!r.ok) throw new Error('taf.json not found');
+        const data = await r.json();
+        // data.tafs = { "HND": { icao, issued, raw }, ... }
+        Object.entries(data.tafs || {}).forEach(([iata, t]) => {
+            const parsed = parseTaf(t);
+            if (parsed) TAF_CACHE[iata] = parsed;
+        });
+        save();
+        setStatus('TAF UPDATED: ' + (data.updated || ''));
+    } catch(e) {
+        setStatus('TAF LOAD FAILED: ' + e.message);
+    }
     renderTaf();
+    calcWindFromTaf();
     draw();
 }
 
