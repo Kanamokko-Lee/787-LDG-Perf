@@ -239,17 +239,20 @@
       </div>
 
     </div><!-- .rows -->
-  </div><!-- left panel -->
 
-  <!-- RIGHT PANEL -->
-  <div class="panel" style="max-width:500px;">
-    <h2>Results</h2>
-    <div class="res-box">
+    <!-- TARGET THRUST（左パネル下部） -->
+    <div class="res-box" style="margin-top:14px;">
       <div class="res-row">
         <span style="color:var(--grey);font-size:11px;">TARGET THRUST</span>
         <div><span class="res-n1" id="res-n1">--.-</span><span class="res-u">% N1</span></div>
       </div>
     </div>
+
+  </div><!-- left panel -->
+
+  <!-- RIGHT PANEL -->
+  <div class="panel" style="max-width:500px;">
+    <h2>Results</h2>
     <!-- PATH入力 -->
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
       <span style="color:var(--grey);font-size:11px;font-weight:bold;white-space:nowrap;">G/S PATH</span>
@@ -709,13 +712,14 @@ function vizArcMid(a1, a2, radius) {
 }
 
 function drawViz() {
-    const papi = S.path;
-    const oat  = S.oat;
-    const effY = vizEffAngle(3.25, oat);
-    const effZ = vizEffAngle(3.02, oat);
-    const dispPapi = VIZ_BASE;
-    const dispY    = vizDisp(effY, papi);
-    const dispZ    = vizDisp(effZ, papi);
+    const papi   = S.path;
+    const oat    = S.oat;
+    const effY   = vizEffAngle(3.25, oat);
+    const effZ   = vizEffAngle(3.02, oat);
+    const refBase = 3.0;  // 基準角度固定（画面中央基準）
+    const dispPapi = vizDisp(papi, refBase);
+    const dispY    = vizDisp(effY,  refBase);
+    const dispZ    = vizDisp(effZ,  refBase);
     const tipY    = vizTip(dispY, VIZ_LEN);
     const tipPapi = vizTip(dispPapi, VIZ_LEN);
     const tipZ    = vizTip(dispZ, VIZ_LEN);
