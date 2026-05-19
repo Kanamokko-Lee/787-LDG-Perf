@@ -242,8 +242,8 @@
 
     <!-- TARGET THRUST（左パネル下部） -->
     <div class="res-box" style="margin-top:14px;">
-      <div class="res-row">
-        <span style="color:var(--grey);font-size:11px;">TARGET THRUST</span>
+      <div style="text-align:center;">
+        <div style="color:var(--grey);font-size:11px;margin-bottom:4px;">TARGET THRUST</div>
         <div><span class="res-n1" id="res-n1">--.-</span><span class="res-u">% N1</span></div>
       </div>
     </div>
@@ -267,8 +267,11 @@
 
     <!-- Path Expansion Visualizer -->
     <div style="background:#060b14;border:1px solid #1e293b;border-radius:8px;margin-bottom:10px;padding:8px;position:relative;">
-      <svg id="path-svg" viewBox="0 0 500 200" style="width:100%;display:block;">
+      <svg id="path-svg" viewBox="0 0 500 200" style="width:100%;display:block;overflow:hidden;">
         <defs>
+          <clipPath id="viz-clip">
+            <rect x="0" y="0" width="498" height="200"/>
+          </clipPath>
           <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
             <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
           </marker>
@@ -682,9 +685,9 @@ function fmtBt(lim) {
 // ================================================================
 const VIZ_GND_Y  = 170;
 const VIZ_ORIGIN = 0;
-const VIZ_LEN    = 470;
-const VIZ_BASE   = 28;
-const VIZ_SCALE  = 100.0;
+const VIZ_LEN    = 440;
+const VIZ_BASE   = 20;   // 基準表示角度（画面上の度数）
+const VIZ_SCALE  = 15.0; // 実角度1°→表示15°（誇張して見やすく）
 
 function vizExpRatio(oat) { return 1 + ((oat - 15) / 10) * 0.04; }
 function vizEffAngle(src, oat) {
@@ -732,13 +735,15 @@ function drawViz() {
     };
     sl('viz-y', tipY); sl('viz-papi', tipPapi); sl('viz-z', tipZ);
 
-    // Labels
+    // Labels（SVG幅490内に収まるようクランプ）
     const setLbl = (id, disp, text) => {
-        const lp = vizTip(disp, VIZ_LEN + 12);
+        const lp = vizTip(disp, VIZ_LEN + 10);
         const el = document.getElementById(id);
-        el.setAttribute('x', lp.x.toFixed(1));
+        const clampedX = Math.min(lp.x, 488);
+        const anchor = lp.x > 420 ? 'end' : 'start';
+        el.setAttribute('x', clampedX.toFixed(1));
         el.setAttribute('y', (lp.y + 4).toFixed(1));
-        el.setAttribute('text-anchor', lp.x > 430 ? 'end' : 'start');
+        el.setAttribute('text-anchor', anchor);
         el.textContent = text;
     };
     setLbl('viz-lbl-y',    dispY,    `Y: ${effY.toFixed(2)}°`);
