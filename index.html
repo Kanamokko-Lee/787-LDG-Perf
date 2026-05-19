@@ -250,6 +250,48 @@
         <div><span class="res-n1" id="res-n1">--.-</span><span class="res-u">% N1</span></div>
       </div>
     </div>
+    <!-- PATH入力 -->
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+      <span style="color:var(--grey);font-size:11px;font-weight:bold;white-space:nowrap;">G/S PATH</span>
+      <div class="ibox w210">
+        <button onclick="adj('path',-0.1)">&lt;</button>
+        <button onclick="adj('path',-0.05)">-</button>
+        <div class="v" id="v-path">3.00°</div>
+        <button onclick="adj('path',0.05)">+</button>
+        <button onclick="adj('path',0.1)">&gt;</button>
+      </div>
+    </div>
+
+    <!-- Path Expansion Visualizer -->
+    <div style="background:#060b14;border:1px solid #1e293b;border-radius:8px;margin-bottom:10px;padding:8px;position:relative;">
+      <svg id="path-svg" viewBox="0 0 500 200" style="width:100%;display:block;">
+        <defs>
+          <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+            <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </marker>
+        </defs>
+        <!-- Ground -->
+        <rect x="0" y="170" width="500" height="30" fill="#1e293b"/>
+        <line x1="0" y1="170" x2="500" y2="170" stroke="#334155" stroke-width="1.5"/>
+        <rect x="8" y="170" width="28" height="4" fill="#ef4444" rx="1"/>
+        <text x="40" y="167" fill="#64748b" font-size="9" font-family="monospace" font-weight="700">THR</text>
+        <!-- Lines drawn by JS -->
+        <line id="viz-z"    x1="0" y1="170" x2="0" y2="170" stroke="#eab308" stroke-width="2.5" stroke-linecap="round"/>
+        <line id="viz-papi" x1="0" y1="170" x2="0" y2="170" stroke="#3b82f6" stroke-width="2"   stroke-linecap="round"/>
+        <line id="viz-y"    x1="0" y1="170" x2="0" y2="170" stroke="#ef4444" stroke-width="4"   stroke-linecap="round"/>
+        <!-- Arc Y vs PAPI -->
+        <path id="viz-arc-y" fill="none" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="3 3"/>
+        <text id="viz-arc-y-txt" fill="#ef4444" font-size="11" font-family="monospace" font-weight="800" text-anchor="middle"></text>
+        <!-- Arc Z vs PAPI -->
+        <path id="viz-arc-z" fill="none" stroke="#eab308" stroke-width="1.5" stroke-dasharray="3 3"/>
+        <text id="viz-arc-z-txt" fill="#eab308" font-size="11" font-family="monospace" font-weight="800" text-anchor="middle"></text>
+        <!-- Labels -->
+        <text id="viz-lbl-y"    fill="#ef4444" font-size="11" font-family="monospace" font-weight="800"></text>
+        <text id="viz-lbl-papi" fill="#3b82f6" font-size="11" font-family="monospace" font-weight="700"></text>
+        <text id="viz-lbl-z"    fill="#eab308" font-size="11" font-family="monospace" font-weight="700"></text>
+      </svg>
+      <div id="viz-badge" style="position:absolute;bottom:10px;right:10px;background:#185FA5;color:#E6F1FB;padding:4px 10px;border-radius:6px;font-family:monospace;font-size:11px;font-weight:700;"></div>
+    </div>
     <table>
       <thead><tr><th>A/B</th><th>ADVISORY (FT)</th><th>1NM (°C)</th><th>2NM (°C)</th></tr></thead>
       <tbody id="tbody"></tbody>
@@ -324,7 +366,8 @@ const BT = {
 let S = {
     model:'787-8', flap:25, brk:2, cond:6, wind:0,
     oat:15, qnh:29.92, unit:'inHg', vref:5,
-    apt:'HND', rwy:'34L', wgt:320000, fcst:0
+    apt:'HND', rwy:'34L', wgt:320000, fcst:0,
+    path: 3.00   // glide path angle (degrees)
 };
 let TAF_CACHE = {};   // { icao: { hdr, lines:[{text,day,hour}] } }
 
@@ -601,6 +644,7 @@ function adj(f, a) {
     else if (f==='vref') S.vref = Math.max(0, Math.min(20, S.vref+a));
     else if (f==='wind') S.wind += a;
     else if (f==='oat')  S.oat  += a;
+    else if (f==='path') S.path = Math.round((Math.max(2.0, Math.min(5.0, S.path + a))) * 100) / 100;
     else if (f==='brks') S.brk  = Math.max(0, Math.min(4, S.brk+a));
     draw();
 }
@@ -631,6 +675,101 @@ function fmtBt(lim) {
 }
 
 // ================================================================
+// PATH EXPANSION VISUALIZER
+// ================================================================
+const VIZ_GND_Y  = 170;
+const VIZ_ORIGIN = 0;
+const VIZ_LEN    = 470;
+const VIZ_BASE   = 28;
+const VIZ_SCALE  = 100.0;
+
+function vizExpRatio(oat) { return 1 + ((oat - 15) / 10) * 0.04; }
+function vizEffAngle(src, oat) {
+    const ratio = vizExpRatio(oat);
+    return Math.atan(Math.tan(src * Math.PI / 180) * ratio) * 180 / Math.PI;
+}
+function vizDisp(realAngle, baseAngle) {
+    return Math.max(4, Math.min(80, VIZ_BASE + (realAngle - baseAngle) * VIZ_SCALE));
+}
+function vizTip(dispDeg, len) {
+    const r = dispDeg * Math.PI / 180;
+    return { x: VIZ_ORIGIN + len * Math.cos(r), y: VIZ_GND_Y - len * Math.sin(r) };
+}
+function vizArcPath(a1, a2, radius) {
+    const r1 = a1 * Math.PI / 180, r2 = a2 * Math.PI / 180;
+    const sx = VIZ_ORIGIN + radius * Math.cos(r1), sy = VIZ_GND_Y - radius * Math.sin(r1);
+    const ex = VIZ_ORIGIN + radius * Math.cos(r2), ey = VIZ_GND_Y - radius * Math.sin(r2);
+    const sweep = a1 > a2 ? 1 : 0;
+    return `M ${sx.toFixed(1)} ${sy.toFixed(1)} A ${radius} ${radius} 0 0 ${sweep} ${ex.toFixed(1)} ${ey.toFixed(1)}`;
+}
+function vizArcMid(a1, a2, radius) {
+    const mid = (a1 + a2) / 2;
+    const r = mid * Math.PI / 180;
+    return { x: VIZ_ORIGIN + radius * Math.cos(r), y: VIZ_GND_Y - radius * Math.sin(r) };
+}
+
+function drawViz() {
+    const papi = S.path;
+    const oat  = S.oat;
+    const effY = vizEffAngle(3.25, oat);
+    const effZ = vizEffAngle(3.02, oat);
+    const dispPapi = VIZ_BASE;
+    const dispY    = vizDisp(effY, papi);
+    const dispZ    = vizDisp(effZ, papi);
+    const tipY    = vizTip(dispY, VIZ_LEN);
+    const tipPapi = vizTip(dispPapi, VIZ_LEN);
+    const tipZ    = vizTip(dispZ, VIZ_LEN);
+
+    // Lines
+    const sl = (id, tp) => {
+        const el = document.getElementById(id);
+        el.setAttribute('x2', tp.x.toFixed(1));
+        el.setAttribute('y2', tp.y.toFixed(1));
+    };
+    sl('viz-y', tipY); sl('viz-papi', tipPapi); sl('viz-z', tipZ);
+
+    // Labels
+    const setLbl = (id, disp, text) => {
+        const lp = vizTip(disp, VIZ_LEN + 12);
+        const el = document.getElementById(id);
+        el.setAttribute('x', lp.x.toFixed(1));
+        el.setAttribute('y', (lp.y + 4).toFixed(1));
+        el.setAttribute('text-anchor', lp.x > 430 ? 'end' : 'start');
+        el.textContent = text;
+    };
+    setLbl('viz-lbl-y',    dispY,    `Y: ${effY.toFixed(2)}°`);
+    setLbl('viz-lbl-papi', dispPapi, `PAPI: ${papi.toFixed(2)}°`);
+    setLbl('viz-lbl-z',    dispZ,    `Z: ${effZ.toFixed(2)}°`);
+
+    // Arc Y
+    const ayEl = document.getElementById('viz-arc-y');
+    const ayTx = document.getElementById('viz-arc-y-txt');
+    if (Math.abs(dispY - dispPapi) > 0.5) {
+        ayEl.setAttribute('d', vizArcPath(dispPapi, dispY, 140));
+        const mp = vizArcMid(dispPapi, dispY, 140);
+        ayTx.setAttribute('x', mp.x.toFixed(1));
+        ayTx.setAttribute('y', (mp.y - 4).toFixed(1));
+        ayTx.textContent = Math.abs(effY - papi).toFixed(2) + '°';
+    } else { ayEl.setAttribute('d', ''); ayTx.textContent = ''; }
+
+    // Arc Z
+    const azEl = document.getElementById('viz-arc-z');
+    const azTx = document.getElementById('viz-arc-z-txt');
+    if (Math.abs(dispZ - dispPapi) > 0.5) {
+        azEl.setAttribute('d', vizArcPath(dispPapi, dispZ, 220));
+        const mp = vizArcMid(dispPapi, dispZ, 220);
+        azTx.setAttribute('x', mp.x.toFixed(1));
+        azTx.setAttribute('y', (mp.y - 4).toFixed(1));
+        azTx.textContent = Math.abs(effZ - papi).toFixed(2) + '°';
+    } else { azEl.setAttribute('d', ''); azTx.textContent = ''; }
+
+    // Badge
+    const ratio = vizExpRatio(oat);
+    const pct = ((ratio - 1) * 100).toFixed(1);
+    document.getElementById('viz-badge').textContent = `Expansion: ${pct >= 0 ? '+' : ''}${pct}%`;
+}
+
+// ================================================================
 // STATUS HELPER
 // ================================================================
 function setStatus(msg) { document.getElementById('status').textContent = msg; }
@@ -644,8 +783,12 @@ function draw() {
     const tb = n1b[S.model][S.flap];
     const rs=S.model==='787-8'?260:300, re=S.model==='787-8'?380:420;
     const wl=S.wgt/1000;
-    const n1=tb[rs]+(tb[re]-tb[rs])*((wl-rs)/120)+(S.oat-15)/10+(S.wind>0?S.wind/10*1.5:0)+(S.vref-5)/5*1.5;
+    // N1計算（path補正含む）
+    // 基準3.0°、0.2°深くなると-1.5%N1
+    const pathCorr = (S.path - 3.0) / 0.2 * (-1.5);
+    const n1 = tb[rs]+(tb[re]-tb[rs])*((wl-rs)/120)+(S.oat-15)/10+(S.wind>0?S.wind/10*1.5:0)+(S.vref-5)/5*1.5 + pathCorr;
     document.getElementById('res-n1').textContent = n1.toFixed(1);
+    document.getElementById('v-path').textContent = S.path.toFixed(2) + '°';
 
     // 入力値表示
     document.getElementById('v-cond').textContent = S.cond;
@@ -711,6 +854,7 @@ function draw() {
         });
     }
     save();
+    drawViz();
 }
 
 // ================================================================
