@@ -686,8 +686,8 @@ function fmtBt(lim) {
 const VIZ_GND_Y  = 170;
 const VIZ_ORIGIN = 0;
 const VIZ_LEN    = 440;
-const VIZ_BASE   = 20;   // 基準表示角度（画面上の度数）
-const VIZ_SCALE  = 15.0; // 実角度1°→表示15°（誇張して見やすく）
+const VIZ_BASE   = 20;
+const VIZ_SCALE  = 60.0; // 拡大表示：実角度1°→60°で描画
 
 function vizExpRatio(oat) { return 1 + ((oat - 15) / 10) * 0.04; }
 function vizEffAngle(src, oat) {
@@ -719,7 +719,7 @@ function drawViz() {
     const oat    = S.oat;
     const effY   = vizEffAngle(3.25, oat);
     const effZ   = vizEffAngle(3.02, oat);
-    const refBase = 3.0;  // 基準角度固定（画面中央基準）
+    const refBase = 3.0;
     const dispPapi = vizDisp(papi, refBase);
     const dispY    = vizDisp(effY,  refBase);
     const dispZ    = vizDisp(effZ,  refBase);
@@ -727,16 +727,26 @@ function drawViz() {
     const tipPapi = vizTip(dispPapi, VIZ_LEN);
     const tipZ    = vizTip(dispZ, VIZ_LEN);
 
-    // Lines
-    const sl = (id, tp) => {
-        const el = document.getElementById(id);
-        el.setAttribute('x2', tp.x.toFixed(1));
-        el.setAttribute('y2', tp.y.toFixed(1));
-    };
-    sl('viz-y', tipY); sl('viz-papi', tipPapi); sl('viz-z', tipZ);
+    // PAPIに近い方を判定
+    const distY = Math.abs(effY - papi);
+    const distZ = Math.abs(effZ - papi);
+    const yIsCloser = distY < distZ;
 
-    // Labels（SVG幅490内に収まるようクランプ）
-    const setLbl = (id, disp, text) => {
+    // Lines（近い方を太く）
+    const elY    = document.getElementById('viz-y');
+    const elZ    = document.getElementById('viz-z');
+    const elPapi = document.getElementById('viz-papi');
+    elY.setAttribute('x2', tipY.x.toFixed(1));
+    elY.setAttribute('y2', tipY.y.toFixed(1));
+    elY.setAttribute('stroke-width', yIsCloser ? '6' : '3');
+    elZ.setAttribute('x2', tipZ.x.toFixed(1));
+    elZ.setAttribute('y2', tipZ.y.toFixed(1));
+    elZ.setAttribute('stroke-width', yIsCloser ? '3' : '6');
+    elPapi.setAttribute('x2', tipPapi.x.toFixed(1));
+    elPapi.setAttribute('y2', tipPapi.y.toFixed(1));
+
+    // Labels（SVG幅490内にクランプ、近い方を大きく）
+    const setLbl = (id, disp, text, isCloser) => {
         const lp = vizTip(disp, VIZ_LEN + 10);
         const el = document.getElementById(id);
         const clampedX = Math.min(lp.x, 488);
@@ -744,11 +754,13 @@ function drawViz() {
         el.setAttribute('x', clampedX.toFixed(1));
         el.setAttribute('y', (lp.y + 4).toFixed(1));
         el.setAttribute('text-anchor', anchor);
+        el.setAttribute('font-size', isCloser ? '14' : '11');
+        el.setAttribute('font-weight', isCloser ? '900' : '700');
         el.textContent = text;
     };
-    setLbl('viz-lbl-y',    dispY,    `Y: ${effY.toFixed(2)}°`);
-    setLbl('viz-lbl-papi', dispPapi, `PAPI: ${papi.toFixed(2)}°`);
-    setLbl('viz-lbl-z',    dispZ,    `Z: ${effZ.toFixed(2)}°`);
+    setLbl('viz-lbl-y',    dispY,    `Y: ${effY.toFixed(2)}°`,    yIsCloser);
+    setLbl('viz-lbl-papi', dispPapi, `PAPI: ${papi.toFixed(2)}°`, false);
+    setLbl('viz-lbl-z',    dispZ,    `Z: ${effZ.toFixed(2)}°`,    !yIsCloser);
 
     // Arc Y
     const ayEl = document.getElementById('viz-arc-y');
@@ -758,7 +770,8 @@ function drawViz() {
         const mp = vizArcMid(dispPapi, dispY, 140);
         ayTx.setAttribute('x', mp.x.toFixed(1));
         ayTx.setAttribute('y', (mp.y - 4).toFixed(1));
-        ayTx.textContent = Math.abs(effY - papi).toFixed(2) + '°';
+        ayTx.setAttribute('font-size', yIsCloser ? '15' : '12');
+        ayTx.textContent = distY.toFixed(2) + '°';
     } else { ayEl.setAttribute('d', ''); ayTx.textContent = ''; }
 
     // Arc Z
@@ -769,7 +782,8 @@ function drawViz() {
         const mp = vizArcMid(dispPapi, dispZ, 220);
         azTx.setAttribute('x', mp.x.toFixed(1));
         azTx.setAttribute('y', (mp.y - 4).toFixed(1));
-        azTx.textContent = Math.abs(effZ - papi).toFixed(2) + '°';
+        azTx.setAttribute('font-size', yIsCloser ? '12' : '15');
+        azTx.textContent = distZ.toFixed(2) + '°';
     } else { azEl.setAttribute('d', ''); azTx.textContent = ''; }
 
     // Badge
