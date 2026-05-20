@@ -203,7 +203,7 @@
       <div class="row">
         <div class="lft">
           <label>OAT</label>
-          <div class="ibox w210"><button onclick="adj('oat',-10)">&lt;</button><button onclick="adj('oat',-1)">-</button><div class="v" id="v-oat">15</div><button onclick="adj('oat',1)">+</button><button onclick="adj('oat',10)">&gt;</button></div>
+          <div class="ibox w210"><button onclick="adj('oat',-5)">&lt;</button><button onclick="adj('oat',-1)">-</button><div class="v" id="v-oat">15</div><button onclick="adj('oat',1)">+</button><button onclick="adj('oat',5)">&gt;</button></div>
         </div>
         <div class="rgt"></div>
       </div>
@@ -694,7 +694,7 @@ function fmtBt(lim) {
 const VIZ_GND_Y  = 170;
 const VIZ_ORIGIN = 0;
 const VIZ_BASE   = 20;
-const VIZ_SCALE  = 20.0;
+const VIZ_SCALE  = 50.0;  // 拡大：線間を広げる
 
 function vizExpRatio(oat) { return 1 + ((oat - 15) / 10) * 0.04; }
 function vizEffAngle(src, oat) {
