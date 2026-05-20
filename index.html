@@ -235,7 +235,12 @@
           <label>VREF ADD</label>
           <div class="ibox w140"><button onclick="adj('vref',-1)">-</button><div class="v" id="v-vref">5</div><button onclick="adj('vref',1)">+</button></div>
         </div>
-        <div class="rgt"></div>
+        <div class="rgt">
+          <div style="display:flex;flex-direction:column;gap:2px;">
+            <span style="color:var(--grey);font-size:10px;">VREF / VAPP</span>
+            <span id="v-vref-spd" style="color:var(--green);font-family:'Consolas',monospace;font-size:16px;font-weight:bold;">--- / --- kt</span>
+          </div>
+        </div>
       </div>
 
     </div><!-- .rows -->
@@ -265,6 +270,10 @@
       </div>
       <button id="btn-path-y" onclick="setPath(3.25)" style="display:none;background:#1a1a1a;border:1px solid #ef4444;color:#ef4444;border-radius:4px;padding:0 10px;height:36px;cursor:pointer;font-weight:bold;font-size:13px;">Y</button>
       <button id="btn-path-z" onclick="setPath(3.02)" style="display:none;background:#1a1a1a;border:1px solid #eab308;color:#eab308;border-radius:4px;padding:0 10px;height:36px;cursor:pointer;font-weight:bold;font-size:13px;">Z</button>
+      <div style="display:flex;flex-direction:column;gap:1px;margin-left:auto;">
+        <span style="color:var(--grey);font-size:10px;white-space:nowrap;">DESCENT RATE</span>
+        <span id="v-descent" style="color:var(--cyan);font-family:'Consolas',monospace;font-size:13px;font-weight:bold;white-space:nowrap;">---- ft/min</span>
+      </div>
     </div>
 
     <!-- Path Expansion Visualizer -->
@@ -689,7 +698,45 @@ function fmtBt(lim) {
 }
 
 // ================================================================
-// PATH EXPANSION VISUALIZER
+// VREF DATABASE
+// ================================================================
+const VREF_DATA = {
+    "787-8": {
+        // 10000ft基準, weight=1000LB単位
+        30: {500:167,480:164,460:160,440:156,420:152,400:149,380:145,360:142,340:138,320:133,300:129,280:124,260:120,240:119},
+        25: {500:171,480:167,460:163,440:160,420:156,400:152,380:147,360:145,340:140,320:136,300:131,280:126,260:122,240:119},
+        20: {500:171,480:167,460:163,440:160,420:156,400:152,380:147,360:145,340:141,320:137,300:134,280:129,260:125,240:121}
+    },
+    "787-9": {
+        // 14000ft基準
+        30: {600:183,580:179,560:176,540:175,520:171,500:168,480:164,460:161,440:157,420:153,400:149,380:145,360:141,340:137,320:133,300:128,280:125,260:121},
+        25: {600:190,580:187,560:184,540:182,520:178,500:175,480:171,460:167,440:163,420:159,400:155,380:150,360:146,340:142,320:137,300:132,280:128,260:123},
+        20: {600:191,580:188,560:184,540:183,520:179,500:175,480:171,460:167,440:163,420:159,400:155,380:151,360:146,340:142,320:137,300:132,280:128,260:123}
+    }
+};
+
+function getVref(model, flap, wgtLbs) {
+    const tbl = VREF_DATA[model]?.[flap];
+    if (!tbl) return null;
+    const wKlb = Math.round(wgtLbs / 1000 / 20) * 20; // 20刻みで丸める
+    const keys = Object.keys(tbl).map(Number).sort((a,b) => b-a);
+    // 補間
+    const wKlb20 = wgtLbs / 1000;
+    let upper = keys.find(k => k >= wKlb20);
+    let lower = keys.find(k => k <= wKlb20);
+    if (upper === undefined) upper = keys[0];
+    if (lower === undefined) lower = keys[keys.length-1];
+    if (upper === lower) return tbl[upper];
+    const vU = tbl[upper], vL = tbl[lower];
+    return Math.round(vL + (vU - vL) * (wKlb20 - lower) / (upper - lower));
+}
+
+function calcDescentRate(pathDeg, vappKt) {
+    // 降下率 = Vapp(kt) * sin(path°) * 101.269 ft/min/kt
+    // 簡易式: ROD = Vapp * tan(path°) * 101.269
+    const r = pathDeg * Math.PI / 180;
+    return Math.round(vappKt * Math.tan(r) * 101.269);
+}
 // ================================================================
 const VIZ_GND_Y  = 170;
 const VIZ_ORIGIN = 0;
@@ -792,23 +839,41 @@ function drawViz() {
         elZ.setAttribute('stroke-width', '4');
     }
 
-    // ラベル
+    // ラベル：PAPIは線端追従、Y=左上固定、Z=右下固定
     const setLbl = (id, disp, len, text, big, show) => {
         const el = document.getElementById(id);
         if (!show) { el.textContent = ''; return; }
-        const lp = vizTip(disp, len + 8);
-        const cx = Math.min(Math.max(lp.x, 2), 494);
-        const cy = Math.min(Math.max(lp.y + 4, 14), 165);
-        el.setAttribute('x', cx.toFixed(1));
-        el.setAttribute('y', cy.toFixed(1));
-        el.setAttribute('text-anchor', cx > 400 ? 'end' : 'start');
         el.setAttribute('font-size', big ? '17' : '14');
         el.setAttribute('font-weight', big ? '900' : '700');
         el.textContent = text;
     };
-    setLbl('viz-lbl-y',    dispY,    lenY,    `Y: ${effY3.toFixed(2)}°`,   yIsCloser,  isHND);
-    setLbl('viz-lbl-papi', dispPapi, lenPapi, `PAPI: ${papi.toFixed(2)}°`, false,       true);
-    setLbl('viz-lbl-z',    dispZuse, lenZ,    isHND ? `Z: ${effZ3.toFixed(2)}°` : '3.0°', !yIsCloser, true);
+    // PAPI：線端追従
+    const lblPapi = document.getElementById('viz-lbl-papi');
+    const lpPapi = vizTip(dispPapi, lenPapi + 8);
+    lblPapi.setAttribute('x', Math.min(lpPapi.x, 486).toFixed(1));
+    lblPapi.setAttribute('y', Math.min(Math.max(lpPapi.y + 4, 14), 165).toFixed(1));
+    lblPapi.setAttribute('text-anchor', lpPapi.x > 400 ? 'end' : 'start');
+    lblPapi.setAttribute('font-size', '14');
+    lblPapi.setAttribute('font-weight', '700');
+    lblPapi.textContent = `PAPI: ${papi.toFixed(2)}°`;
+
+    // Y（赤）：左上固定
+    const lblY = document.getElementById('viz-lbl-y');
+    if (isHND) {
+        lblY.setAttribute('x', '6');
+        lblY.setAttribute('y', '20');
+        lblY.setAttribute('text-anchor', 'start');
+        setLbl('viz-lbl-y', dispY, lenY, `Y: ${effY3.toFixed(2)}°`, yIsCloser, true);
+    } else {
+        lblY.textContent = '';
+    }
+
+    // Z（黄）：右下固定（groundラインの少し上）
+    const lblZ = document.getElementById('viz-lbl-z');
+    lblZ.setAttribute('x', '494');
+    lblZ.setAttribute('y', '158');
+    lblZ.setAttribute('text-anchor', 'end');
+    setLbl('viz-lbl-z', dispZuse, lenZ, isHND ? `Z: ${effZ3.toFixed(2)}°` : '3.0°', !yIsCloser, true);
 
     // 弧：Y（HNDのみ）
     const ayEl = document.getElementById('viz-arc-y');
@@ -864,6 +929,37 @@ function draw() {
     document.getElementById('v-qnh').textContent  = inHg()?S.qnh.toFixed(2):S.qnh;
     document.getElementById('v-wgt').textContent  = (S.wgt/1000).toFixed(0)+'T';
     document.getElementById('v-vref').textContent = S.vref;
+
+    // VREF / VAPP / 降下率
+    const vref = getVref(S.model, S.flap, S.wgt);
+    const vapp = vref !== null ? vref + S.vref : null;
+    const vrefEl = document.getElementById('v-vref-spd');
+    const descentEl = document.getElementById('v-descent');
+    if (vref !== null && vapp !== null) {
+        vrefEl.textContent = `${vref} / ${vapp} kt`;
+        const isHND = S.apt === 'HND';
+        const oat = S.oat;
+        const effY = vizEffAngle(3.25, oat);
+        const effZ = vizEffAngle(3.02, oat);
+        const eff3 = vizEffAngle(3.0, oat);
+        const rodPapi = calcDescentRate(S.path, vapp);
+        if (isHND) {
+            const rodY = calcDescentRate(effY, vapp);
+            const rodZ = calcDescentRate(effZ, vapp);
+            descentEl.innerHTML =
+                `<span style="color:#3b82f6">PAPI ${rodPapi}</span> ` +
+                `<span style="color:#ef4444">Y ${rodY}</span> ` +
+                `<span style="color:#eab308">Z ${rodZ}</span> ft/min`;
+        } else {
+            const rod3 = calcDescentRate(eff3, vapp);
+            descentEl.innerHTML =
+                `<span style="color:#3b82f6">PAPI ${rodPapi}</span> ` +
+                `<span style="color:#eab308">3.0° ${rod3}</span> ft/min`;
+        }
+    } else {
+        vrefEl.textContent = '--- / --- kt';
+        descentEl.textContent = '---- ft/min';
+    }
     document.getElementById('m8').className  = S.model==='787-8'?'on':'';
     document.getElementById('m9').className  = S.model==='787-9'?'on':'';
     document.getElementById('f25').className = S.flap===25?'on':'';
