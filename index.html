@@ -63,7 +63,7 @@
 
         /* 入力行 */
         .rows { display: flex; flex-direction: column; gap: 8px; }
-        .row { display: flex; justify-content: space-between; align-items: center; gap: 16px; min-height: 38px; }
+        .row { display: flex; justify-content: center; align-items: center; gap: 16px; min-height: 38px; }
         .lft, .rgt { display: flex; align-items: center; gap: 8px; flex: 1; }
         .lft { justify-content: flex-end; }
         .rgt { justify-content: flex-start; }
@@ -72,6 +72,8 @@
 
         /* インプットボックス */
         .ibox { display: flex; align-items: center; gap: 4px; background: #1a1a1a; border: 1px solid var(--border); border-radius: 4px; height: 36px; padding: 3px; }
+        .ibox.bright { border-color: #aaa; }
+        .ibox.bright button { background: #333; }
         .ibox.w140 { width: 140px; }
         .ibox.w210 { width: 210px; }
         .ibox button { background: #2a2a2a; border: none; color: #fff; width: 28px; height: 100%; font-size: 14px; border-radius: 3px; cursor: pointer; flex-shrink: 0; }
@@ -192,7 +194,7 @@
       <div class="row">
         <div class="lft">
           <label>WIND</label>
-          <div class="ibox w210"><button onclick="adj('wind',-5)">&lt;</button><button onclick="adj('wind',-1)">-</button><div class="v" id="v-wind">H 0</div><button onclick="adj('wind',1)">+</button><button onclick="adj('wind',5)">&gt;</button></div>
+          <div class="ibox w210 bright"><button onclick="adj('wind',-5)">&lt;</button><button onclick="adj('wind',-1)">-</button><div class="v" id="v-wind">H 0</div><button onclick="adj('wind',1)">+</button><button onclick="adj('wind',5)">&gt;</button></div>
         </div>
         <div class="rgt">
           <div class="ibox w140"><button onclick="adj('brks',-1)">-</button><div class="v" id="v-brks">3</div><button onclick="adj('brks',1)">+</button></div>
@@ -203,15 +205,18 @@
       <div class="row">
         <div class="lft">
           <label>OAT</label>
-          <div class="ibox w210"><button onclick="adj('oat',-5)">&lt;</button><button onclick="adj('oat',-1)">-</button><div class="v" id="v-oat">15</div><button onclick="adj('oat',1)">+</button><button onclick="adj('oat',5)">&gt;</button></div>
+          <div class="ibox w210 bright"><button onclick="adj('oat',-5)">&lt;</button><button onclick="adj('oat',-1)">-</button><div class="v" id="v-oat">15</div><button onclick="adj('oat',1)">+</button><button onclick="adj('oat',5)">&gt;</button></div>
         </div>
-        <div class="rgt"></div>
+        <div class="rgt">
+          <select id="rev" onchange="redraw()"><option value="MAX">MAX REV</option><option value="ONE">ONE REV</option><option value="NO">NO REV</option></select>
+          <label>REV</label>
+        </div>
       </div>
 
       <div class="row">
         <div class="lft">
           <label>QNH</label>
-          <div class="ibox w210"><button onclick="adj('qnh',-10)">&lt;</button><button onclick="adj('qnh',-1)">-</button><div class="v" id="v-qnh">29.92</div><button onclick="adj('qnh',1)">+</button><button onclick="adj('qnh',10)">&gt;</button></div>
+          <div class="ibox w210 bright"><button onclick="adj('qnh',-10)">&lt;</button><button onclick="adj('qnh',-1)">-</button><div class="v" id="v-qnh">29.92</div><button onclick="adj('qnh',1)">+</button><button onclick="adj('qnh',10)">&gt;</button></div>
         </div>
         <div class="rgt">
           <button class="ubtn on" id="u-inhg" onclick="setUnit('inHg')">inHg</button>
@@ -222,24 +227,19 @@
       <div class="row">
         <div class="lft">
           <label>WEIGHT</label>
-          <div class="ibox w210"><button onclick="adj('wgt',-10)">&lt;</button><button onclick="adj('wgt',-1)">-</button><div class="v" id="v-wgt">320T</div><button onclick="adj('wgt',1)">+</button><button onclick="adj('wgt',10)">&gt;</button></div>
+          <div class="ibox w210 bright"><button onclick="adj('wgt',-10)">&lt;</button><button onclick="adj('wgt',-1)">-</button><div class="v" id="v-wgt">320T</div><button onclick="adj('wgt',1)">+</button><button onclick="adj('wgt',10)">&gt;</button></div>
         </div>
         <div class="rgt">
-          <select id="rev" onchange="redraw()"><option value="MAX">MAX REV</option><option value="ONE">ONE REV</option><option value="NO">NO REV</option></select>
-          <label>REV</label>
+          <label>VREF ADD</label>
+          <div class="ibox w140 bright"><button onclick="adj('vref',-1)">-</button><div class="v" id="v-vref">5</div><button onclick="adj('vref',1)">+</button></div>
         </div>
       </div>
 
       <div class="row">
-        <div class="lft">
-          <label>VREF ADD</label>
-          <div class="ibox w140"><button onclick="adj('vref',-1)">-</button><div class="v" id="v-vref">5</div><button onclick="adj('vref',1)">+</button></div>
-        </div>
+        <div class="lft"></div>
         <div class="rgt">
-          <div style="display:flex;flex-direction:column;gap:2px;">
-            <span style="color:var(--grey);font-size:10px;">VREF / VAPP</span>
-            <span id="v-vref-spd" style="font-family:'Consolas',monospace;font-size:16px;">--- / --- kt</span>
-          </div>
+          <span style="color:var(--grey);font-size:11px;font-weight:bold;white-space:nowrap;">VREF / VAPP</span>
+          <span id="v-vref-spd" style="font-family:'Consolas',monospace;font-size:16px;margin-left:6px;">--- / --- kt</span>
         </div>
       </div>
 
@@ -269,7 +269,7 @@
         <button onclick="adj('path',0.1)">&gt;</button>
       </div>
       <button id="btn-path-y" onclick="setPath(3.25)" style="display:none;background:#1a1a1a;border:1px solid #ef4444;color:#ef4444;border-radius:4px;padding:0 10px;height:36px;cursor:pointer;font-weight:bold;font-size:13px;">Y</button>
-      <button id="btn-path-z" onclick="setPath(3.02)" style="display:none;background:#1a1a1a;border:1px solid #eab308;color:#eab308;border-radius:4px;padding:0 10px;height:36px;cursor:pointer;font-weight:bold;font-size:13px;">Z</button>
+      <button id="btn-path-z" onclick="setPath(3.02)" style="display:none;background:#1a1a1a;border:1px solid #3b82f6;color:#3b82f6;border-radius:4px;padding:0 10px;height:36px;cursor:pointer;font-weight:bold;font-size:13px;">Z</button>
     </div>
 
     <!-- Path Expansion Visualizer -->
@@ -286,24 +286,24 @@
         <!-- Ground line only -->
         <line x1="0" y1="170" x2="500" y2="170" stroke="#334155" stroke-width="1.5"/>
         <!-- Lines drawn by JS -->
-        <line id="viz-z"    x1="0" y1="170" x2="0" y2="170" stroke="#eab308" stroke-width="2.5" stroke-linecap="round"/>
-        <line id="viz-papi" x1="0" y1="170" x2="0" y2="170" stroke="#3b82f6" stroke-width="2"   stroke-linecap="round"/>
+        <line id="viz-z"    x1="0" y1="170" x2="0" y2="170" stroke="#3b82f6" stroke-width="2.5" stroke-linecap="round"/>
+        <line id="viz-papi" x1="0" y1="170" x2="0" y2="170" stroke="#ff69b4" stroke-width="2"   stroke-linecap="round"/>
         <line id="viz-y"    x1="0" y1="170" x2="0" y2="170" stroke="#ef4444" stroke-width="4"   stroke-linecap="round"/>
         <!-- Arc Y vs PAPI -->
         <g clip-path="url(#viz-clip)">
           <path id="viz-arc-y" fill="none" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="3 3"/>
-          <text id="viz-arc-y-txt" fill="#ef4444" font-size="14" font-family="monospace" font-weight="800" text-anchor="middle"></text>
+          <text id="viz-arc-y-txt" fill="#ef4444" font-size="17" font-family="monospace" font-weight="900" text-anchor="middle"></text>
           <!-- Arc Z vs PAPI -->
-          <path id="viz-arc-z" fill="none" stroke="#eab308" stroke-width="1.5" stroke-dasharray="3 3"/>
-          <text id="viz-arc-z-txt" fill="#eab308" font-size="14" font-family="monospace" font-weight="800" text-anchor="middle"></text>
+          <path id="viz-arc-z" fill="none" stroke="#3b82f6" stroke-width="1.5" stroke-dasharray="3 3"/>
+          <text id="viz-arc-z-txt" fill="#3b82f6" font-size="17" font-family="monospace" font-weight="900" text-anchor="middle"></text>
           <!-- Labels -->
-          <text id="viz-lbl-y"    fill="#ef4444" font-size="14" font-family="monospace" font-weight="800"></text>
-          <text id="viz-lbl-papi" fill="#3b82f6" font-size="14" font-family="monospace" font-weight="700"></text>
-          <text id="viz-lbl-z"    fill="#eab308" font-size="14" font-family="monospace" font-weight="700"></text>
+          <text id="viz-lbl-y"    fill="#ef4444" font-size="17" font-family="monospace" font-weight="800"></text>
+          <text id="viz-lbl-papi" fill="#ff69b4" font-size="17" font-family="monospace" font-weight="700"></text>
+          <text id="viz-lbl-z"    fill="#3b82f6" font-size="17" font-family="monospace" font-weight="700"></text>
           <!-- Descent rate: positioned dynamically below each label -->
-          <text id="viz-rod-y"    fill="#ef4444" font-size="14" font-family="monospace" font-weight="700"></text>
-          <text id="viz-rod-papi" fill="#3b82f6" font-size="14" font-family="monospace" font-weight="700"></text>
-          <text id="viz-rod-z"    fill="#eab308" font-size="14" font-family="monospace" font-weight="700"></text>
+          <text id="viz-rod-y"    fill="#ef4444" font-size="17" font-family="monospace" font-weight="700"></text>
+          <text id="viz-rod-papi" fill="#ff69b4" font-size="17" font-family="monospace" font-weight="700"></text>
+          <text id="viz-rod-z"    fill="#3b82f6" font-size="17" font-family="monospace" font-weight="700"></text>
         </g>
       </svg>
     </div>
@@ -495,25 +495,41 @@ function calcWindFromTaf() { applyTafToState(); }
 
 async function fetchAllTaf() {
     setStatus('FETCHING TAF...');
-    try {
-        const r = await fetch('/787-LDG-Perf/taf.json?t=' + Date.now());
-        if (!r.ok) throw new Error('taf.json not found');
-        const data = await r.json();
-        // data.tafs = { "HND": { icao, issued, raw }, ... }
-        Object.entries(data.tafs || {}).forEach(([iata, t]) => {
-            const parsed = parseTaf(t);
-            // rawがなくても気温・気圧データがあればキャッシュ
-            const entry = parsed || { hdr:'', raw:'', lines:[] };
-            TAF_CACHE[iata] = entry;
-            TAF_CACHE[iata].oat        = t.oat        ?? null;
-            TAF_CACHE[iata].qnh        = t.qnh        ?? null;
-            TAF_CACHE[iata].hourly_oat = t.hourly_oat ?? null;
-        });
-        save();
-        setStatus('TAF UPDATED: ' + (data.updated || ''));
-    } catch(e) {
-        setStatus('TAF LOAD FAILED: ' + e.message);
+    // 複数のパスを試みる
+    const paths = [
+        './taf.json?t=' + Date.now(),
+        '/787-LDG-Perf/taf.json?t=' + Date.now(),
+        'taf.json?t=' + Date.now()
+    ];
+    let data = null;
+    for (const path of paths) {
+        try {
+            const r = await fetch(path);
+            if (r.ok) {
+                data = await r.json();
+                setStatus('TAF LOADED from ' + path.split('?')[0]);
+                break;
+            }
+        } catch(e) {}
     }
+    if (!data) {
+        setStatus('TAF LOAD FAILED - using cached data');
+        renderTaf();
+        applyTafToState();
+        draw();
+        return;
+    }
+    // data.tafs = { "HND": { icao, issued, raw }, ... }
+    Object.entries(data.tafs || {}).forEach(([iata, t]) => {
+        const parsed = parseTaf(t);
+        const entry = parsed || { hdr:'', raw:'', lines:[] };
+        TAF_CACHE[iata] = entry;
+        TAF_CACHE[iata].oat        = t.oat        ?? null;
+        TAF_CACHE[iata].qnh        = t.qnh        ?? null;
+        TAF_CACHE[iata].hourly_oat = t.hourly_oat ?? null;
+    });
+    save();
+    setStatus('TAF UPDATED: ' + (data.updated || ''));
     renderTaf();
     applyTafToState();
     draw();
@@ -843,7 +859,7 @@ function drawViz() {
     const setLbl = (id, text, big, show) => {
         const el = document.getElementById(id);
         if (!show) { el.textContent = ''; return; }
-        el.setAttribute('font-size', big ? '17' : '14');
+        el.setAttribute('font-size', big ? '21' : '17');
         el.setAttribute('font-weight', big ? '900' : '700');
         el.textContent = text;
     };
@@ -856,8 +872,9 @@ function drawViz() {
     lblPapi.setAttribute('x', papiX.toFixed(1));
     lblPapi.setAttribute('y', papiY.toFixed(1));
     lblPapi.setAttribute('text-anchor', lpPapi.x > 400 ? 'end' : 'start');
-    lblPapi.setAttribute('font-size', '14');
-    lblPapi.setAttribute('font-weight', '700');
+    lblPapi.setAttribute('font-size', '18');
+    lblPapi.setAttribute('font-weight', '800');
+    lblPapi.setAttribute('fill', '#ff69b4');
     lblPapi.textContent = `PAPI: ${papi.toFixed(2)}°`;
 
     // Y（赤）：左上固定
@@ -879,11 +896,11 @@ function drawViz() {
     setLbl('viz-lbl-z', isHND ? `Z: ${effZ3.toFixed(2)}°` : '3.0°', !yIsCloser, true);
 
     // Descent rate: 各ラベルの直下に配置
-    const yFontSize  = yIsCloser ? '17' : '14';
-    const zFontSize  = !yIsCloser ? '17' : '14';
-    const yRodOffset = yIsCloser ? 20 : 17;
-    const zRodOffset = !yIsCloser ? 20 : 17;
-    const papiRodOffset = 17;
+    const yFontSize  = yIsCloser ? '21' : '17';
+    const zFontSize  = !yIsCloser ? '21' : '17';
+    const yRodOffset = yIsCloser ? 24 : 20;
+    const zRodOffset = !yIsCloser ? 24 : 20;
+    const papiRodOffset = 20;
 
     // Y直下
     const rodY = document.getElementById('viz-rod-y');
@@ -898,8 +915,9 @@ function drawViz() {
     rodPapi.setAttribute('x', papiX.toFixed(1));
     rodPapi.setAttribute('y', (papiY + papiRodOffset).toFixed(1));
     rodPapi.setAttribute('text-anchor', lpPapi.x > 400 ? 'end' : 'start');
-    rodPapi.setAttribute('font-size', '14');
-    rodPapi.setAttribute('font-weight', '700');
+    rodPapi.setAttribute('font-size', '18');
+    rodPapi.setAttribute('font-weight', '800');
+    rodPapi.setAttribute('fill', '#ff69b4');
 
     // Z直下
     const rodZ = document.getElementById('viz-rod-z');
@@ -909,27 +927,29 @@ function drawViz() {
     rodZ.setAttribute('font-size', zFontSize);
     rodZ.setAttribute('font-weight', !yIsCloser ? '900' : '700');
 
-    // 弧：Y（HNDのみ）
+    // 弧：Y（HNDのみ）— 固定位置（左側、赤ラベルの下）
     const ayEl = document.getElementById('viz-arc-y');
     const ayTx = document.getElementById('viz-arc-y-txt');
     if (isHND && Math.abs(dispY - dispPapi) > 0.5) {
-        ayEl.setAttribute('d', vizArcPath(dispPapi, dispY, 130));
-        const mp = vizArcMid(dispPapi, dispY, 130);
-        ayTx.setAttribute('x', mp.x.toFixed(1));
-        ayTx.setAttribute('y', (mp.y - 5).toFixed(1));
-        ayTx.setAttribute('font-size', yIsCloser ? '17' : '14');
+        ayEl.setAttribute('d', vizArcPath(dispPapi, dispY, 120));
+        ayTx.setAttribute('x', '60');
+        ayTx.setAttribute('y', '75');
+        ayTx.setAttribute('font-size', yIsCloser ? '20' : '17');
+        ayTx.setAttribute('font-weight', '900');
+        ayTx.setAttribute('text-anchor', 'middle');
         ayTx.textContent = distY.toFixed(2) + '°';
     } else { ayEl.setAttribute('d', ''); ayTx.textContent = ''; }
 
-    // 弧：Z（常に表示）
+    // 弧：Z — 固定位置（右側、青ラベルの上）
     const azEl = document.getElementById('viz-arc-z');
     const azTx = document.getElementById('viz-arc-z-txt');
     if (Math.abs(dispZuse - dispPapi) > 0.5) {
-        azEl.setAttribute('d', vizArcPath(dispPapi, dispZuse, 210));
-        const mp = vizArcMid(dispPapi, dispZuse, 210);
-        azTx.setAttribute('x', mp.x.toFixed(1));
-        azTx.setAttribute('y', (mp.y - 5).toFixed(1));
-        azTx.setAttribute('font-size', (!yIsCloser) ? '17' : '14');
+        azEl.setAttribute('d', vizArcPath(dispPapi, dispZuse, 200));
+        azTx.setAttribute('x', '430');
+        azTx.setAttribute('y', '110');
+        azTx.setAttribute('font-size', (!yIsCloser) ? '20' : '17');
+        azTx.setAttribute('font-weight', '900');
+        azTx.setAttribute('text-anchor', 'middle');
         azTx.textContent = distZ.toFixed(2) + '°';
     } else { azEl.setAttribute('d', ''); azTx.textContent = ''; }
 }
@@ -981,8 +1001,7 @@ function draw() {
         // SVG内の descent rate テキストを更新
         document.getElementById('viz-rod-papi').textContent = `${rodPapiVal} ft/m`;
         document.getElementById('viz-rod-y').textContent    = isHND2 ? `${rodYVal} ft/m` : '';
-        document.getElementById('viz-rod-z').textContent    = `${rodZVal} ft/m`;
-    } else {
+        document.getElementById('viz-rod-z').textContent    = `${rodZVal} ft/m`;    } else {
         vrefEl.textContent = '--- / --- kt';
         document.getElementById('viz-rod-papi').textContent = '';
         document.getElementById('viz-rod-y').textContent    = '';
