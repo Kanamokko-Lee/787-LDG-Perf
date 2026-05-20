@@ -155,9 +155,12 @@
     </div>
 
     <!-- TAFボックス（FCST GMT直下・常時表示） -->
-    <div id="taf-box">
-      <div id="metar-line"></div>
-      <div id="taf-raw">FETCHING TAF...</div>
+    <div style="display:flex;gap:6px;align-items:flex-start;margin-bottom:10px;">
+      <div id="taf-box" style="flex:1;margin-bottom:0;">
+        <div id="metar-line"></div>
+        <div id="taf-raw">FETCHING TAF...</div>
+      </div>
+      <button onclick="refreshTaf()" style="background:#1a1a1a;border:1px solid #444;color:#aaa;border-radius:4px;padding:4px 8px;font-size:11px;font-weight:bold;cursor:pointer;white-space:nowrap;flex-shrink:0;margin-top:2px;">↺<br>UPD</button>
     </div>
 
     <!-- ステータス -->
@@ -258,9 +261,9 @@
 
     <!-- TARGET THRUST（左パネル下部） -->
     <div class="res-box" style="margin-top:14px;">
-      <div style="display:flex;align-items:baseline;justify-content:space-between;padding:0 4px;">
-        <span style="color:var(--grey);font-size:11px;font-weight:bold;">TARGET THRUST</span>
-        <div><span class="res-n1" id="res-n1">--.-</span><span class="res-u">% N1</span></div>
+      <div style="display:flex;align-items:baseline;justify-content:center;gap:10px;">
+        <span style="color:var(--grey);font-size:11px;font-weight:bold;white-space:nowrap;">TARGET THRUST</span>
+        <span class="res-n1" id="res-n1">--.-</span><span class="res-u">% N1</span>
       </div>
     </div>
 
@@ -468,14 +471,19 @@ function activeLineIdx() {
     return idx;
 }
 
+async function refreshTaf() {
+    await fetchAllTaf();
+}
+
 function renderTaf() {
     const taf = TAF_CACHE[S.apt];
     const metarEl = document.getElementById('metar-line');
     const rawEl   = document.getElementById('taf-raw');
 
-    // METAR表示
-    if (taf && taf.metar_raw) {
-        metarEl.textContent = taf.metar_raw;
+    // METAR表示（nullでも空文字でもない場合のみ）
+    const metarRaw = taf && taf.metar_raw;
+    if (metarRaw) {
+        metarEl.textContent = metarRaw;
         metarEl.style.display = 'block';
     } else {
         metarEl.textContent = '';
