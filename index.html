@@ -135,7 +135,6 @@
 
   <!-- LEFT PANEL -->
   <div class="panel">
-    <h2>Input Parameters</h2>
 
     <!-- モデル + FCST GMT -->
     <div class="top-row">
@@ -146,8 +145,9 @@
       <div class="fcst-wrap">
         <span>FCST GMT</span>
         <div class="fcst-box">
+          <button onclick="stepFcst(-3)">-3</button>
           <button onclick="stepFcst(-1)">-</button>
-          <div class="fcst-val" id="fcst-val">NOW</div>
+          <div class="fcst-val" id="fcst-val" onclick="resetFcst()" style="cursor:pointer;">NOW</div>
           <button onclick="stepFcst(1)">+</button>
           <button onclick="stepFcst(3)">+3</button>
         </div>
@@ -258,8 +258,8 @@
 
     <!-- TARGET THRUST（左パネル下部） -->
     <div class="res-box" style="margin-top:14px;">
-      <div style="text-align:center;">
-        <div style="color:var(--grey);font-size:11px;margin-bottom:4px;">TARGET THRUST</div>
+      <div style="display:flex;align-items:baseline;justify-content:space-between;padding:0 4px;">
+        <span style="color:var(--grey);font-size:11px;font-weight:bold;">TARGET THRUST</span>
         <div><span class="res-n1" id="res-n1">--.-</span><span class="res-u">% N1</span></div>
       </div>
     </div>
@@ -268,7 +268,6 @@
 
   <!-- RIGHT PANEL -->
   <div class="panel" style="max-width:500px;">
-    <h2>Results</h2>
     <!-- PATH入力 -->
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
       <span style="color:var(--grey);font-size:11px;font-weight:bold;white-space:nowrap;">G/S PATH</span>
@@ -603,10 +602,12 @@ async function fetchAllTaf() {
             TAF_CACHE[iata].metar_wspd  = t.metar_wspd  ?? null;
             TAF_CACHE[iata].metar_oat   = t.metar_oat   ?? null;
             TAF_CACHE[iata].metar_qnh   = t.metar_qnh   ?? null;
+            TAF_CACHE[iata].metar_raw   = t.metar_raw   ?? null;
             TAF_CACHE[iata].hourly_oat  = t.hourly_oat  ?? null;
         });
         save();
-        setStatus('TAF UPDATED: ' + (data.updated || ''));
+        const updStr = (data.updated || '').replace('T', ' ').replace(/:00Z$/, 'Z').replace(/:\d{2}Z$/, 'Z');
+        setStatus('TAF UPDATED: ' + updStr);
     } catch(e) {
         setStatus('TAF CACHE: ' + Object.keys(TAF_CACHE).length + ' airports');
     }
@@ -620,6 +621,13 @@ async function fetchAllTaf() {
 // ================================================================
 function stepFcst(d) {
     S.fcst = Math.max(0, Math.min(24, S.fcst + d));
+    updateFcstLabel();
+    renderTaf();
+    applyTafToState();
+    draw();
+}
+function resetFcst() {
+    S.fcst = 0;
     updateFcstLabel();
     renderTaf();
     applyTafToState();
