@@ -495,6 +495,7 @@ async function refreshTaf() {
         const metData = metRes.ok ? await metRes.json() : [];
 
         // TAFをパース
+        let tafCount = 0;
         for (const item of tafData) {
             let raw = (item.rawTAF || item.raw_text || item.text || '').trim();
             if (!raw) continue;
@@ -505,10 +506,8 @@ async function refreshTaf() {
             if (!iata) continue;
             const parsed = parseTaf({raw, issued: item.issueTime || ''});
             const entry = parsed || {hdr:'', raw, lines:[]};
-            // groupsをクライアント側で生成
             entry.groups = buildGroupsClient(raw);
             if (TAF_CACHE[iata]) {
-                // METARデータを保持
                 entry.metar_raw  = TAF_CACHE[iata].metar_raw;
                 entry.metar_wdir = TAF_CACHE[iata].metar_wdir;
                 entry.metar_wspd = TAF_CACHE[iata].metar_wspd;
@@ -517,6 +516,7 @@ async function refreshTaf() {
                 entry.hourly_oat = TAF_CACHE[iata].hourly_oat;
             }
             TAF_CACHE[iata] = entry;
+            tafCount++;
         }
 
         // METARをパース
@@ -557,7 +557,8 @@ async function refreshTaf() {
         const nowStr = now.toISOString();
         localStorage.setItem('taf_cache_time', nowStr);
         const hhmm = now.getUTCHours().toString().padStart(2,'0') + ':' + now.getUTCMinutes().toString().padStart(2,'0');
-        setStatus('LIVE UPDATED ' + hhmm + 'Z');
+        const metCount = Object.keys(metarLatest).length;
+        setStatus(`LIVE UPDATED ${hhmm}Z  TAF:${tafCount} MET:${metCount}`);
     } catch(e) {
         setStatus('LIVE FETCH FAILED: ' + e.message);
     }
