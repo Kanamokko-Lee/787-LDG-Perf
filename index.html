@@ -44,19 +44,29 @@
             border: 1px solid #1a1a1a;
             box-shadow: inset 0 2px 6px rgba(0,0,0,0.8), inset 0 0 0 1px #2a2a2a;
             border-radius: 6px;
-            padding: 10px 14px;
+            padding: 6px 10px;
             margin-bottom: 10px;
-            min-height: 60px;
+            min-height: 40px;
         }
         #taf-raw {
             color: #bbb;
-            font-size: 13px;
+            font-size: 12px;
             font-family: 'Consolas', monospace;
-            line-height: 1.8;
+            line-height: 1.35;
             white-space: pre-wrap;
             word-break: break-all;
         }
-        #taf-raw .hi { background: var(--active); color: #fff; font-weight: bold; border-left: 3px solid var(--cyan); display: block; padding-left: 4px; }
+        #metar-line {
+            color: #7dd3fc;
+            font-size: 12px;
+            font-family: 'Consolas', monospace;
+            line-height: 1.35;
+            white-space: pre-wrap;
+            word-break: break-all;
+            border-bottom: 1px solid #222;
+            margin-bottom: 3px;
+            padding-bottom: 3px;
+        }
 
         /* ステータス */
         .status { font-size: 10px; color: var(--cyan); font-style: italic; text-align: center; margin-bottom: 8px; min-height: 14px; }
@@ -146,6 +156,7 @@
 
     <!-- TAFボックス（FCST GMT直下・常時表示） -->
     <div id="taf-box">
+      <div id="metar-line"></div>
       <div id="taf-raw">FETCHING TAF...</div>
     </div>
 
@@ -459,29 +470,80 @@ function activeLineIdx() {
 }
 
 function renderTaf() {
-    const el = document.getElementById('taf-raw');
     const taf = TAF_CACHE[S.apt];
+    const metarEl = document.getElementById('metar-line');
+    const rawEl   = document.getElementById('taf-raw');
+
+    // METAR表示
+    if (taf && taf.metar_raw) {
+        metarEl.textContent = taf.metar_raw;
+        metarEl.style.display = 'block';
+    } else {
+        metarEl.textContent = '';
+        metarEl.style.display = 'none';
+    }
+
     if (!taf || !taf.raw) {
-        el.textContent = taf ? 'TAF NOT AVAILABLE' : 'NO TAF';
+        rawEl.textContent = taf ? 'TAF NOT AVAILABLE' : 'NO TAF';
         return;
     }
-    const raw = taf.raw
-        .replace(/\s+(BECMG|TEMPO|FM\d{6}|PROB\d{2})\s+/g, '\n  $1 ')
-        .trim();
-    el.textContent = raw;
+
+    // TAFをFM/BECMG/TEMPO/PROBで分割して12時間以内のものだけ表示
+    const lines = taf.raw
+        .replace(/\s+(FM\d{6}|BECMG\s+\d{4}\/\d{4}|TEMPO\s+\d{4}\/\d{4}|PROB\d{2}(?:\s+TEMPO)?)\s+/g, '\n$1 ')
+        .trim()
+        .split('\n');
+
+    // groupsがあれば12時間フィルタ
+    const groups = taf.groups || [];
+    const MAX_H = 12;
+    let filtered;
+    if (groups.length > 0) {
+        // offset_h <= S.fcst+MAX_H のグループに対応する行だけ残す
+        const limitH = S.fcst + MAX_H;
+        // 表示すべきグループのインデックスを収集
+        const showIdxSet = new Set();
+        showIdxSet.add(0); // ヘッダー行は常に表示
+        groups.forEach((g, i) => {
+            if (g.offset_h <= limitH) showIdxSet.add(i + 1); // +1はヘッダー分
+        });
+        filtered = lines.filter((_, i) => showIdxSet.has(i));
+    } else {
+        filtered = lines;
+    }
+
+    rawEl.textContent = filtered.join('\n');
 }
 
 // ================================================================
 // WIND & OAT FROM TAF / METAR
 // ================================================================
-function windComponent(wdir, wspd) {
-    // 向かい風成分計算（VRBはTail扱い）
+function windComponent(wdir, wspd, rawStr) {
     if (!S.rwy || wspd === null || wspd === undefined) return null;
+    const rwyDeg = parseInt(S.rwy.replace(/[LRC]/g,'')) * 10;
+
+    // VRB → 追い風（Tailwind）
     if (wdir === 'VRB' || wdir === null) {
-        // VRB → 追い風（Tailwind）として返す
         return -Math.abs(wspd);
     }
-    const rwyDeg = parseInt(S.rwy.replace(/[LRC]/g,'')) * 10;
+
+    // 可変風向 "120V170" → 最も不利な方向（tailが最大）を選ぶ
+    if (rawStr) {
+        const vm = rawStr.match(/(\d{3})V(\d{3})/);
+        if (vm) {
+            const d1 = parseInt(vm[1]);
+            const d2 = parseInt(vm[2]);
+            // 両方向で向かい風成分を計算し、小さい方（より追い風に近い）を採用
+            const calc = (dir) => {
+                const diff = ((dir - rwyDeg + 360) % 360);
+                const angle = diff > 180 ? diff - 360 : diff;
+                return Math.round(wspd * Math.cos(angle * Math.PI / 180));
+            };
+            const w1 = calc(d1), w2 = calc(d2);
+            return Math.min(w1, w2); // 最も不利（tailが大きい or headが小さい）
+        }
+    }
+
     const diff = ((wdir - rwyDeg + 360) % 360);
     const angle = diff > 180 ? diff - 360 : diff;
     return Math.round(wspd * Math.cos(angle * Math.PI / 180));
@@ -494,7 +556,7 @@ function applyTafToState() {
     if (S.fcst === 0) {
         // NOW → METARの実測値を優先
         if (taf.metar_wdir !== undefined) {
-            const w = windComponent(taf.metar_wdir, taf.metar_wspd);
+            const w = windComponent(taf.metar_wdir, taf.metar_wspd, taf.metar_raw);
             if (w !== null) S.wind = w;
         }
         if (taf.metar_oat !== null && taf.metar_oat !== undefined) {
@@ -512,7 +574,7 @@ function applyTafToState() {
         const gi = activeGroupIdx();
         if (gi >= 0 && taf.groups && taf.groups[gi]) {
             const g = taf.groups[gi];
-            const w = windComponent(g.wdir, g.wspd);
+            const w = windComponent(g.wdir, g.wspd, g.text);
             if (w !== null) S.wind = w;
         }
         // 気温 → hourly_oat[fcst]
