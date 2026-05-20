@@ -475,7 +475,122 @@ function activeLineIdx() {
 }
 
 async function refreshTaf() {
-    await fetchAllTaf();
+    setStatus('FETCHING LIVE DATA...');
+    const btn = document.querySelector('button[onclick="refreshTaf()"]');
+    if (btn) btn.style.opacity = '0.5';
+
+    const ICAO_LIST = Object.values(ICAO4).join(',');
+    const PROXY = 'https://corsproxy.io/?';
+
+    try {
+        // TAF取得
+        const tafUrl = `https://aviationweather.gov/api/data/taf?ids=${ICAO_LIST}&format=json&metar=false`;
+        const tafRes = await fetch(PROXY + encodeURIComponent(tafUrl));
+        if (!tafRes.ok) throw new Error('TAF fetch failed');
+        const tafData = await tafRes.json();
+
+        // METAR取得
+        const metUrl = `https://aviationweather.gov/api/data/metar?ids=${ICAO_LIST}&format=json&hours=2`;
+        const metRes = await fetch(PROXY + encodeURIComponent(metUrl));
+        const metData = metRes.ok ? await metRes.json() : [];
+
+        // TAFをパース
+        for (const item of tafData) {
+            let raw = (item.rawTAF || item.raw_text || item.text || '').trim();
+            if (!raw) continue;
+            const m = raw.match(/\b([A-Z]{4})\s+\d{6}Z\b/);
+            if (!m) continue;
+            const icao = m[1];
+            const iata = Object.entries(ICAO4).find(([k,v]) => v === icao)?.[0];
+            if (!iata) continue;
+            const parsed = parseTaf({raw, issued: item.issueTime || ''});
+            const entry = parsed || {hdr:'', raw, lines:[]};
+            // groupsをクライアント側で生成
+            entry.groups = buildGroupsClient(raw);
+            if (TAF_CACHE[iata]) {
+                // METARデータを保持
+                entry.metar_raw  = TAF_CACHE[iata].metar_raw;
+                entry.metar_wdir = TAF_CACHE[iata].metar_wdir;
+                entry.metar_wspd = TAF_CACHE[iata].metar_wspd;
+                entry.metar_oat  = TAF_CACHE[iata].metar_oat;
+                entry.metar_qnh  = TAF_CACHE[iata].metar_qnh;
+                entry.hourly_oat = TAF_CACHE[iata].hourly_oat;
+            }
+            TAF_CACHE[iata] = entry;
+        }
+
+        // METARをパース
+        const metarLatest = {};
+        for (const item of metData) {
+            let raw = (item.rawOb || item.raw_text || item.rawMETAR || '').trim();
+            if (!raw) continue;
+            const m = raw.match(/\b([A-Z]{4})\s+\d{6}Z\b/);
+            if (!m) continue;
+            const icao = m[1];
+            const iata = Object.entries(ICAO4).find(([k,v]) => v === icao)?.[0];
+            if (!iata) continue;
+            const obsTime = item.observationTime || item.observation_time || '';
+            if (!metarLatest[iata] || obsTime > metarLatest[iata].t) {
+                const wm = raw.match(/\b(VRB|(\d{3}))(\d{2,3})(G\d{2,3})?KT\b/);
+                const tm = raw.match(/\b(M?)(\d{2})\/(M?)(\d{2})\b/);
+                const qm = raw.match(/\bQ(\d{4})\b/) || raw.match(/\bA(\d{4})\b/);
+                metarLatest[iata] = {
+                    t: obsTime, raw,
+                    wdir: wm ? (wm[1]==='VRB'?'VRB':+wm[2]) : null,
+                    wspd: wm ? +wm[3] : null,
+                    oat:  tm ? (tm[1]==='M'?-+tm[2]:+tm[2]) : null,
+                    qnh:  qm ? (raw.match(/\bQ(\d{4})\b/) ? +qm[1] : Math.round(+qm[1]*0.33864)) : null
+                };
+            }
+        }
+        for (const [iata, mv] of Object.entries(metarLatest)) {
+            if (!TAF_CACHE[iata]) TAF_CACHE[iata] = {hdr:'',raw:'',lines:[],groups:[]};
+            TAF_CACHE[iata].metar_raw  = mv.raw;
+            TAF_CACHE[iata].metar_wdir = mv.wdir;
+            TAF_CACHE[iata].metar_wspd = mv.wspd;
+            TAF_CACHE[iata].metar_oat  = mv.oat;
+            TAF_CACHE[iata].metar_qnh  = mv.qnh;
+        }
+
+        save();
+        const now = new Date();
+        const hhmm = now.getUTCHours().toString().padStart(2,'0') + ':' + now.getUTCMinutes().toString().padStart(2,'0');
+        setStatus('LIVE UPDATED ' + hhmm + 'Z');
+    } catch(e) {
+        setStatus('LIVE FETCH FAILED: ' + e.message);
+    }
+
+    if (btn) btn.style.opacity = '1';
+    renderTaf();
+    applyTafToState();
+    draw();
+}
+
+// クライアント側でTAFグループを生成
+function buildGroupsClient(raw) {
+    const now = new Date();
+    const sections = raw.split(/\s+(?=FM\d{6}|BECMG\s+\d{4}\/\d{4}|TEMPO\s+\d{4}\/\d{4}|PROB\d{2})/);
+    return sections.map(sec => {
+        sec = sec.trim();
+        let offset_h = 0;
+        const fm = sec.match(/^FM(\d{2})(\d{2})\d{2}/);
+        const hdr = sec.match(/\b[A-Z]{4}\s+\d{6}Z\s+(\d{2})(\d{2})\/\d{4}/);
+        const bt  = sec.match(/^(?:BECMG|TEMPO)\s+(\d{2})(\d{2})\/\d{4}/);
+        let day, hour;
+        if (fm)  { day=+fm[1];  hour=+fm[2]; }
+        else if (hdr) { day=+hdr[1]; hour=+hdr[2]; }
+        else if (bt)  { day=+bt[1];  hour=+bt[2]; }
+        if (day !== undefined) {
+            const dd = day - now.getUTCDate();
+            offset_h = (dd < -15 ? dd+30 : dd)*24 + (hour - now.getUTCHours());
+        }
+        const wm = sec.match(/\b(VRB|(\d{3}))(\d{2,3})(G\d{2,3})?KT\b/);
+        return {
+            text: sec, offset_h,
+            wdir: wm ? (wm[1]==='VRB'?'VRB':+wm[2]) : null,
+            wspd: wm ? +wm[3] : null
+        };
+    }).filter(g => g.text);
 }
 
 function renderTaf() {
@@ -814,7 +929,7 @@ function fmtBt(lim) {
 
 // RWY別デフォルトG/S PATH（指定なしは3.0°）
 const RWY_DEFAULT_PATH = {
-    "HND": {"34L":3.0,"34R":3.0,"16L":3.0,"16R":3.0,"22":3.0,"23":3.0,"04":3.0,"05":3.0},
+    "HND": {"34L":3.25,"34R":3.25,"16L":3.25,"16R":3.25,"22":3.25,"23":3.25,"04":3.25,"05":3.25},
     "DLC": {"10":3.3,"28":3.0},
     "TSA": {"28":3.46,"10":3.0},
     "SAN": {"27":3.5,"09":3.3},
