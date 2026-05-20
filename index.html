@@ -222,7 +222,7 @@
           <div class="ibox w210 bright"><button onclick="adj('oat',-5)">&lt;</button><button onclick="adj('oat',-1)">-</button><div class="v" id="v-oat">15</div><button onclick="adj('oat',1)">+</button><button onclick="adj('oat',5)">&gt;</button></div>
         </div>
         <div class="rgt">
-          <select id="rev" onchange="redraw()"><option value="MAX">MAX REV</option><option value="ONE">ONE REV</option><option value="NO">NO REV</option></select>
+          <select id="rev" onchange="draw()"><option value="MAX">MAX REV</option><option value="ONE">ONE REV</option><option value="NO">NO REV</option></select>
           <label>REV</label>
         </div>
       </div>
@@ -262,7 +262,7 @@
     <!-- TARGET THRUST（左パネル下部） -->
     <div class="res-box" style="margin-top:14px;">
       <div style="display:flex;align-items:baseline;justify-content:center;gap:10px;">
-        <span style="color:var(--grey);font-size:11px;font-weight:bold;white-space:nowrap;">TARGET THRUST</span>
+        <span style="color:var(--grey);font-size:11px;font-weight:bold;white-space:nowrap;text-align:center;line-height:1.3;">TARGET<br>THR</span>
         <span class="res-n1" id="res-n1">--.-</span><span class="res-u">% N1</span>
       </div>
     </div>
@@ -358,7 +358,9 @@ const APTS = {
     "KUL":{r:{"14L":13123,"14R":13123,"15":13123,"32L":13123,"32R":13123,"33":13123},lat:2.74,lon:101.70,c:"MY"},
     "SIN":{r:{"02L":13123,"02C":13123,"02R":13123,"20L":13123,"20C":13123,"20R":13123},lat:1.36,lon:103.99,c:"SG"},
     "CGK":{r:{"07L":11811,"07R":11811,"25L":11811,"25R":11811},lat:-6.12,lon:106.65,c:"ID"},
-    "HNL":{r:{"04L":9000,"04R":12000,"08L":12300,"08R":12000,"26L":12000,"26R":12300},lat:21.31,lon:-157.92,c:"US"}
+    "HNL":{r:{"04L":9000,"04R":12000,"08L":12300,"08R":12000,"26L":12000,"26R":12300},lat:21.31,lon:-157.92,c:"US"},
+    "LAX":{r:{"06L":12091,"06R":12091,"07L":11095,"07R":11095,"24L":12091,"24R":12091,"25L":11095,"25R":11095},lat:33.94,lon:-118.41,c:"US"},
+    "SAN":{r:{"09":9401,"27":9401},lat:32.73,lon:-117.19,c:"US"}
 };
 
 const TWYS = {
@@ -375,7 +377,8 @@ const ICAO4 = {
     "KIX":"RJBB","FUK":"RJFF","OKA":"ROAH","GMP":"RKSS","TSA":"RCSS",
     "TPE":"RCTP","PEK":"ZBAA","PVG":"ZSPD","SHA":"ZSSS","DLC":"ZYTL",
     "HKG":"VHHH","CAN":"ZGGG","HAN":"VVNB","SGN":"VVTS","BKK":"VTBS",
-    "KUL":"WMKK","SIN":"WSSS","CGK":"WIII","HNL":"PHNL"
+    "KUL":"WMKK","SIN":"WSSS","CGK":"WIII","HNL":"PHNL",
+    "LAX":"KLAX","SAN":"KSAN"
 };
 
 const LDG = {
@@ -723,6 +726,7 @@ function buildRwyList(isLoad) {
         S.rwy = S.apt === 'ITM' ? '32L' : Object.keys(APTS[S.apt].r)[0];
         sel.value = S.rwy;
     }
+    S.path = getDefaultPath(S.apt, S.rwy);
     updateFcstLabel();
     renderTaf();
     applyTafToState();
@@ -731,6 +735,7 @@ function buildRwyList(isLoad) {
 
 function onRwyChange() {
     S.rwy = document.getElementById('rwy').value;
+    S.path = getDefaultPath(S.apt, S.rwy);
     applyTafToState();
     draw();
 }
@@ -807,8 +812,20 @@ function fmtBt(lim) {
     return `<span class="${bad?'bt-ng':'bt-ok'}">${lim>=40?'40.0':lim.toFixed(1)}</span>`;
 }
 
-// ================================================================
-// VREF DATABASE
+// RWY別デフォルトG/S PATH（指定なしは3.0°）
+const RWY_DEFAULT_PATH = {
+    "HND": {"34L":3.0,"34R":3.0,"16L":3.0,"16R":3.0,"22":3.0,"23":3.0,"04":3.0,"05":3.0},
+    "DLC": {"10":3.3,"28":3.0},
+    "TSA": {"28":3.46,"10":3.0},
+    "SAN": {"27":3.5,"09":3.3},
+    "HNL": {"26L":3.1,"26R":3.1,"04L":3.0,"04R":3.0,"08L":3.0,"08R":3.0}
+};
+
+function getDefaultPath(apt, rwy) {
+    const aptMap = RWY_DEFAULT_PATH[apt];
+    if (aptMap && aptMap[rwy] !== undefined) return aptMap[rwy];
+    return 3.0;
+}
 // ================================================================
 const VREF_DATA = {
     "787-8": {
