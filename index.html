@@ -730,55 +730,55 @@ function vizArcMid(a1, a2, radius) {
 }
 
 function drawViz() {
-    const papi    = S.path;
-    const oat     = S.oat;
-    const isHND   = S.apt === 'HND';
-    const refBase = 3.0;
+    const papi  = S.path;
+    const oat   = S.oat;
+    const isHND = (S.apt === 'HND');
+    const ref   = 3.0;
 
-    // 実効角度計算
-    const effY = vizEffAngle(3.25, oat);  // HNDのY（固定3.25°）
-    const effZ = vizEffAngle(3.02, oat);  // HNDのZ（固定3.02°）
-    const eff3 = vizEffAngle(3.0, oat);   // 非HND用（3.0°ベース）
+    // 表示角度（基準3.0°固定、スケール20）
+    const dispPapi = vizDisp(papi, ref);
+    const dispY    = vizDisp(vizEffAngle(3.25, oat), ref);  // HNDのY
+    const dispZ    = vizDisp(vizEffAngle(3.02, oat), ref);  // HNDのZ
+    const disp3    = vizDisp(vizEffAngle(3.0,  oat), ref);  // 非HND用
 
-    // 表示角度（基準3.0°、スケール20）
-    const dispPapi = vizDisp(papi, refBase);
-    const dispY    = vizDisp(effY, refBase);
-    const dispZ    = vizDisp(effZ, refBase);
-    const disp3    = vizDisp(eff3, refBase);
+    // 各線の長さ（ボックス高さいっぱい）
+    const lenPapi = vizLen(dispPapi);
+    const lenY    = vizLen(dispY);
+    const lenZ    = vizLen(isHND ? dispZ : disp3);
 
-    const tipPapi = vizTip(dispPapi, VIZ_LEN);
-    const tipY    = vizTip(dispY,    VIZ_LEN);
-    const tipZ    = vizTip(dispZ,    VIZ_LEN);
-    const tip3    = vizTip(disp3,    VIZ_LEN);
+    const tipPapi = vizTip(dispPapi, lenPapi);
+    const tipY    = vizTip(dispY, lenY);
+    const tipZuse = vizTip(isHND ? dispZ : disp3, lenZ);
 
-    // PAPI（青）は常に表示
+    // PAPI（青）
     const elPapi = document.getElementById('viz-papi');
     elPapi.setAttribute('x2', tipPapi.x.toFixed(1));
     elPapi.setAttribute('y2', tipPapi.y.toFixed(1));
 
-    // Y線（赤）：HNDのみ表示
+    // 赤線（Y）：HNDのみ表示
     const elY = document.getElementById('viz-y');
     if (isHND) {
         elY.setAttribute('x2', tipY.x.toFixed(1));
         elY.setAttribute('y2', tipY.y.toFixed(1));
-        elY.style.display = '';
+        elY.setAttribute('display', '');
     } else {
-        elY.style.display = 'none';
+        elY.setAttribute('display', 'none');
     }
 
-    // Z線（黄）：HNDは3.02°温度補正、非HNDは3.0°温度補正
-    const elZ = document.getElementById('viz-z');
-    const useZ  = isHND ? tipZ  : tip3;
+    // 黄色線（Z）：HND=3.02°補正、非HND=3.0°補正
     const dispZuse = isHND ? dispZ : disp3;
-    elZ.setAttribute('x2', useZ.x.toFixed(1));
-    elZ.setAttribute('y2', useZ.y.toFixed(1));
+    const elZ = document.getElementById('viz-z');
+    elZ.setAttribute('x2', tipZuse.x.toFixed(1));
+    elZ.setAttribute('y2', tipZuse.y.toFixed(1));
 
-    // PAPIに近い方を判定（HND: Y/Zと比較、非HND: 3.0°と比較）
-    const distY = isHND ? Math.abs(effY - papi) : Infinity;
-    const distZ = isHND ? Math.abs(effZ - papi) : Math.abs(eff3 - papi);
+    // HND: PAPIに近い方を太く
+    const effY3 = vizEffAngle(3.25, oat);
+    const effZ3 = vizEffAngle(3.02, oat);
+    const eff30 = vizEffAngle(3.0,  oat);
+    const distY = isHND ? Math.abs(effY3 - papi) : Infinity;
+    const distZ = isHND ? Math.abs(effZ3 - papi) : Math.abs(eff30 - papi);
     const yIsCloser = distY < distZ;
 
-    // 線の太さ（近い方を太く、HNDのみY線に適用）
     if (isHND) {
         elY.setAttribute('stroke-width', yIsCloser ? '6' : '3');
         elZ.setAttribute('stroke-width', yIsCloser ? '3' : '6');
@@ -786,52 +786,49 @@ function drawViz() {
         elZ.setAttribute('stroke-width', '4');
     }
 
-    // ラベル（近い方を大きく）
-    const setLbl = (id, disp, text, isCloser, show) => {
+    // ラベル
+    const setLbl = (id, disp, len, text, big, show) => {
         const el = document.getElementById(id);
         if (!show) { el.textContent = ''; return; }
-        const lp = vizTip(disp, VIZ_LEN + 10);
-        const cx = Math.min(lp.x, 488);
+        const lp = vizTip(disp, len + 10);
+        const cx = Math.min(lp.x, 486);
         el.setAttribute('x', cx.toFixed(1));
         el.setAttribute('y', (lp.y + 4).toFixed(1));
-        el.setAttribute('text-anchor', lp.x > 420 ? 'end' : 'start');
-        el.setAttribute('font-size', isCloser ? '17' : '14');
-        el.setAttribute('font-weight', isCloser ? '900' : '700');
+        el.setAttribute('text-anchor', cx > 400 ? 'end' : 'start');
+        el.setAttribute('font-size', big ? '17' : '14');
+        el.setAttribute('font-weight', big ? '900' : '700');
         el.textContent = text;
     };
-    setLbl('viz-lbl-y',    dispY,     `Y: ${effY.toFixed(2)}°`,   yIsCloser,  isHND);
-    setLbl('viz-lbl-papi', dispPapi,  `PAPI: ${papi.toFixed(2)}°`, false,      true);
-    setLbl('viz-lbl-z',    dispZuse,  isHND ? `Z: ${effZ.toFixed(2)}°` : '3.0°', !yIsCloser, true);
+    setLbl('viz-lbl-y',    dispY,    lenY,    `Y: ${effY3.toFixed(2)}°`,   yIsCloser,  isHND);
+    setLbl('viz-lbl-papi', dispPapi, lenPapi, `PAPI: ${papi.toFixed(2)}°`, false,       true);
+    setLbl('viz-lbl-z',    dispZuse, lenZ,    isHND ? `Z: ${effZ3.toFixed(2)}°` : '3.0°', !yIsCloser, true);
 
-    // Arc Y（HNDのみ）
+    // 弧：Y（HNDのみ）
     const ayEl = document.getElementById('viz-arc-y');
     const ayTx = document.getElementById('viz-arc-y-txt');
     if (isHND && Math.abs(dispY - dispPapi) > 0.5) {
-        ayEl.setAttribute('d', vizArcPath(dispPapi, dispY, 140));
-        const mp = vizArcMid(dispPapi, dispY, 140);
+        ayEl.setAttribute('d', vizArcPath(dispPapi, dispY, 130));
+        const mp = vizArcMid(dispPapi, dispY, 130);
         ayTx.setAttribute('x', mp.x.toFixed(1));
         ayTx.setAttribute('y', (mp.y - 5).toFixed(1));
         ayTx.setAttribute('font-size', yIsCloser ? '17' : '14');
         ayTx.textContent = distY.toFixed(2) + '°';
     } else { ayEl.setAttribute('d', ''); ayTx.textContent = ''; }
 
-    // Arc Z
+    // 弧：Z（常に表示）
     const azEl = document.getElementById('viz-arc-z');
     const azTx = document.getElementById('viz-arc-z-txt');
-    const distZdisp = Math.abs(dispZuse - dispPapi);
-    if (distZdisp > 0.5) {
-        azEl.setAttribute('d', vizArcPath(dispPapi, dispZuse, 220));
-        const mp = vizArcMid(dispPapi, dispZuse, 220);
+    if (Math.abs(dispZuse - dispPapi) > 0.5) {
+        azEl.setAttribute('d', vizArcPath(dispPapi, dispZuse, 210));
+        const mp = vizArcMid(dispPapi, dispZuse, 210);
         azTx.setAttribute('x', mp.x.toFixed(1));
         azTx.setAttribute('y', (mp.y - 5).toFixed(1));
         azTx.setAttribute('font-size', (!yIsCloser) ? '17' : '14');
-        azTx.textContent = isHND ? (distZ.toFixed(2) + '°') : (Math.abs(eff3 - papi).toFixed(2) + '°');
+        azTx.textContent = distZ.toFixed(2) + '°';
     } else { azEl.setAttribute('d', ''); azTx.textContent = ''; }
 
-    // Badge
-    const ratio = vizExpRatio(oat);
-    const pct = ((ratio - 1) * 100).toFixed(1);
-    document.getElementById('viz-badge').textContent = `Expansion: ${pct >= 0 ? '+' : ''}${pct}%`;
+    // Expansionバッジ非表示
+    document.getElementById('viz-badge').textContent = '';
 }
 
 // ================================================================
