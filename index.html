@@ -254,15 +254,17 @@
   <div class="panel" style="max-width:500px;">
     <h2>Results</h2>
     <!-- PATH入力 -->
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
       <span style="color:var(--grey);font-size:11px;font-weight:bold;white-space:nowrap;">G/S PATH</span>
       <div class="ibox w210">
         <button onclick="adj('path',-0.1)">&lt;</button>
-        <button onclick="adj('path',-0.05)">-</button>
+        <button onclick="adj('path',-0.01)">-</button>
         <div class="v" id="v-path">3.00°</div>
-        <button onclick="adj('path',0.05)">+</button>
+        <button onclick="adj('path',0.01)">+</button>
         <button onclick="adj('path',0.1)">&gt;</button>
       </div>
+      <button id="btn-path-y" onclick="setPath(3.25)" style="display:none;background:#1a1a1a;border:1px solid #ef4444;color:#ef4444;border-radius:4px;padding:0 10px;height:36px;cursor:pointer;font-weight:bold;font-size:13px;">Y</button>
+      <button id="btn-path-z" onclick="setPath(3.02)" style="display:none;background:#1a1a1a;border:1px solid #eab308;color:#eab308;border-radius:4px;padding:0 10px;height:36px;cursor:pointer;font-weight:bold;font-size:13px;">Z</button>
     </div>
 
     <!-- Path Expansion Visualizer -->
@@ -439,13 +441,13 @@ function activeLineIdx() {
 function renderTaf() {
     const el = document.getElementById('taf-raw');
     const taf = TAF_CACHE[S.apt];
-    if (!taf) { el.textContent = 'NO TAF'; return; }
-
-    // RAWテキストをBECMG/TEMPO/FM前で改行
+    if (!taf || !taf.raw) {
+        el.textContent = taf ? 'TAF NOT AVAILABLE' : 'NO TAF';
+        return;
+    }
     const raw = taf.raw
         .replace(/\s+(BECMG|TEMPO|FM\d{6}|PROB\d{2})\s+/g, '\n  $1 ')
         .trim();
-
     el.textContent = raw;
 }
 
@@ -493,13 +495,12 @@ async function fetchAllTaf() {
         // data.tafs = { "HND": { icao, issued, raw }, ... }
         Object.entries(data.tafs || {}).forEach(([iata, t]) => {
             const parsed = parseTaf(t);
-            if (parsed) {
-                TAF_CACHE[iata] = parsed;
-                // 気温・気圧もキャッシュ
-                TAF_CACHE[iata].oat        = t.oat        ?? null;
-                TAF_CACHE[iata].qnh        = t.qnh        ?? null;
-                TAF_CACHE[iata].hourly_oat = t.hourly_oat ?? null;
-            }
+            // rawがなくても気温・気圧データがあればキャッシュ
+            const entry = parsed || { hdr:'', raw:'', lines:[] };
+            TAF_CACHE[iata] = entry;
+            TAF_CACHE[iata].oat        = t.oat        ?? null;
+            TAF_CACHE[iata].qnh        = t.qnh        ?? null;
+            TAF_CACHE[iata].hourly_oat = t.hourly_oat ?? null;
         });
         save();
         setStatus('TAF UPDATED: ' + (data.updated || ''));
@@ -586,6 +587,7 @@ function pickApt(icao) {
     v.textContent = icao;
     document.querySelectorAll('.dd-item').forEach(el => el.classList.toggle('sel', el.dataset.v === icao));
     ddClose();
+    updateYZButtons();
     buildRwyList(false);
 }
 
@@ -633,6 +635,7 @@ function load() {
     v.className = colClass(APTS[S.apt].c);
     v.textContent = S.apt;
     document.querySelectorAll('.dd-item').forEach(el => el.classList.toggle('sel', el.dataset.v === S.apt));
+    updateYZButtons();
     buildRwyList(true);
 }
 
@@ -656,6 +659,13 @@ function adj(f, a) {
 }
 function setModel(m) { S.model=m; S.wgt=(m==='787-8'?320000:360000); draw(); }
 function setFlap(f)  { S.flap=f; draw(); }
+function setPath(v)  { S.path = v; draw(); }
+
+function updateYZButtons() {
+    const show = S.apt === 'HND';
+    document.getElementById('btn-path-y').style.display = show ? '' : 'none';
+    document.getElementById('btn-path-z').style.display = show ? '' : 'none';
+}
 
 // ================================================================
 // BRAKE TEMP
@@ -687,7 +697,7 @@ const VIZ_GND_Y  = 170;
 const VIZ_ORIGIN = 0;
 const VIZ_LEN    = 440;
 const VIZ_BASE   = 20;
-const VIZ_SCALE  = 60.0; // 拡大表示：実角度1°→60°で描画
+const VIZ_SCALE  = 20.0; // 3.25°→25°: (25-20)/(3.25-3.0)=20
 
 function vizExpRatio(oat) { return 1 + ((oat - 15) / 10) * 0.04; }
 function vizEffAngle(src, oat) {
