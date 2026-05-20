@@ -431,11 +431,24 @@ function parseTaf(obj) {
     return { hdr: issued, raw, lines };
 }
 
-function activeLineIdx() {
+function activeGroupIdx() {
+    // taf.groupsのoffset_hを使って現在のFCST時刻に対応するグループを選ぶ
     const taf = TAF_CACHE[S.apt];
-    if (!taf) return -1;
+    if (!taf || !taf.groups || taf.groups.length === 0) return -1;
+    let idx = 0;
+    taf.groups.forEach((g, i) => {
+        // offset_h <= S.fcst のグループのうち最後のものを選ぶ
+        if (g.offset_h <= S.fcst) idx = i;
+    });
+    return idx;
+}
+
+function activeLineIdx() {
+    // parseTaf由来のlines（後方互換）
+    const taf = TAF_CACHE[S.apt];
+    if (!taf || !taf.lines) return -1;
     const now = new Date();
-    const tDay  = now.getUTCDate()  + Math.floor((now.getUTCHours() + S.fcst) / 24);
+    const tDay  = now.getUTCDate() + Math.floor((now.getUTCHours() + S.fcst) / 24);
     const tHour = (now.getUTCHours() + S.fcst) % 24;
     let idx = 0;
     taf.lines.forEach((l, i) => {
@@ -459,35 +472,54 @@ function renderTaf() {
 }
 
 // ================================================================
-// WIND & OAT FROM TAF
+// WIND & OAT FROM TAF / METAR
 // ================================================================
+function windComponent(wdir, wspd) {
+    // 向かい風成分計算（VRBはTail扱い）
+    if (!S.rwy || wspd === null || wspd === undefined) return null;
+    if (wdir === 'VRB' || wdir === null) {
+        // VRB → 追い風（Tailwind）として返す
+        return -Math.abs(wspd);
+    }
+    const rwyDeg = parseInt(S.rwy.replace(/[LRC]/g,'')) * 10;
+    const diff = ((wdir - rwyDeg + 360) % 360);
+    const angle = diff > 180 ? diff - 360 : diff;
+    return Math.round(wspd * Math.cos(angle * Math.PI / 180));
+}
+
 function applyTafToState() {
     const taf = TAF_CACHE[S.apt];
     if (!taf) return;
-    const ai = activeLineIdx();
-    if (ai < 0) return;
-    const line = taf.lines[ai];
 
-    // WIND: 向かい風成分を計算してセット
-    if (line.wdir !== null && line.wspd !== null && S.rwy) {
-        const rwyDeg = parseInt(S.rwy.replace(/[LRC]/g,'')) * 10;
-        const diff = ((line.wdir - rwyDeg + 360) % 360);
-        const angle = diff > 180 ? diff - 360 : diff;
-        S.wind = Math.round(line.wspd * Math.cos(angle * Math.PI / 180));
-    }
-
-    // OAT: FCST時刻に対応した気温をセット
-    if (taf.hourly_oat && taf.hourly_oat[S.fcst] !== undefined) {
-        S.oat = taf.hourly_oat[S.fcst];
-    } else if (taf.oat !== null && taf.oat !== undefined) {
-        S.oat = taf.oat;
-    }
-
-    // QNH: 現況値をセット（予報は取得していないため現況のみ）
-    if (S.fcst === 0 && taf.qnh !== null && taf.qnh !== undefined) {
-        S.qnh = inHg()
-            ? parseFloat((taf.qnh * 0.02953).toFixed(2))
-            : Math.round(taf.qnh);
+    if (S.fcst === 0) {
+        // NOW → METARの実測値を優先
+        if (taf.metar_wdir !== undefined) {
+            const w = windComponent(taf.metar_wdir, taf.metar_wspd);
+            if (w !== null) S.wind = w;
+        }
+        if (taf.metar_oat !== null && taf.metar_oat !== undefined) {
+            S.oat = taf.metar_oat;
+        } else if (taf.hourly_oat) {
+            S.oat = taf.hourly_oat[0];
+        }
+        if (taf.metar_qnh !== null && taf.metar_qnh !== undefined) {
+            S.qnh = inHg()
+                ? parseFloat((taf.metar_qnh * 0.02953).toFixed(2))
+                : Math.round(taf.metar_qnh);
+        }
+    } else {
+        // FCST時刻 → TAFグループの風を使う
+        const gi = activeGroupIdx();
+        if (gi >= 0 && taf.groups && taf.groups[gi]) {
+            const g = taf.groups[gi];
+            const w = windComponent(g.wdir, g.wspd);
+            if (w !== null) S.wind = w;
+        }
+        // 気温 → hourly_oat[fcst]
+        if (taf.hourly_oat && taf.hourly_oat[S.fcst] !== undefined) {
+            S.oat = taf.hourly_oat[S.fcst];
+        }
+        // QNHは予報なし → 変更しない
     }
 }
 
@@ -503,9 +535,13 @@ async function fetchAllTaf() {
             const parsed = parseTaf(t);
             const entry = parsed || { hdr:'', raw:'', lines:[] };
             TAF_CACHE[iata] = entry;
-            TAF_CACHE[iata].oat        = t.oat        ?? null;
-            TAF_CACHE[iata].qnh        = t.qnh        ?? null;
-            TAF_CACHE[iata].hourly_oat = t.hourly_oat ?? null;
+            // groupsとMETARデータを保存
+            TAF_CACHE[iata].groups      = t.groups      ?? [];
+            TAF_CACHE[iata].metar_wdir  = t.metar_wdir  ?? null;
+            TAF_CACHE[iata].metar_wspd  = t.metar_wspd  ?? null;
+            TAF_CACHE[iata].metar_oat   = t.metar_oat   ?? null;
+            TAF_CACHE[iata].metar_qnh   = t.metar_qnh   ?? null;
+            TAF_CACHE[iata].hourly_oat  = t.hourly_oat  ?? null;
         });
         save();
         setStatus('TAF UPDATED: ' + (data.updated || ''));
@@ -521,9 +557,7 @@ async function fetchAllTaf() {
 // FCST GMT
 // ================================================================
 function stepFcst(d) {
-    const taf = TAF_CACHE[S.apt];
-    const max = taf ? taf.lines.length - 1 : 23;
-    S.fcst = Math.max(0, Math.min(max, S.fcst + d));
+    S.fcst = Math.max(0, Math.min(24, S.fcst + d));
     updateFcstLabel();
     renderTaf();
     applyTafToState();
