@@ -494,42 +494,18 @@ function applyTafToState() {
 function calcWindFromTaf() { applyTafToState(); }
 
 async function fetchAllTaf() {
-    setStatus('FETCHING TAF...');
-    // 複数のパスを試みる
-    const paths = [
-        './taf.json?t=' + Date.now(),
-        '/787-LDG-Perf/taf.json?t=' + Date.now(),
-        'taf.json?t=' + Date.now()
-    ];
-    let data = null;
-    for (const path of paths) {
+    // taf.jsonフェッチは停止中。localStorageキャッシュのみ使用。
+    const cached = localStorage.getItem('taf787v3');
+    if (cached) {
         try {
-            const r = await fetch(path);
-            if (r.ok) {
-                data = await r.json();
-                setStatus('TAF LOADED from ' + path.split('?')[0]);
-                break;
-            }
-        } catch(e) {}
+            TAF_CACHE = JSON.parse(cached);
+            setStatus('TAF FROM CACHE: ' + (Object.keys(TAF_CACHE).length) + ' airports');
+        } catch(e) {
+            setStatus('TAF CACHE ERROR');
+        }
+    } else {
+        setStatus('NO TAF CACHE');
     }
-    if (!data) {
-        setStatus('TAF LOAD FAILED - using cached data');
-        renderTaf();
-        applyTafToState();
-        draw();
-        return;
-    }
-    // data.tafs = { "HND": { icao, issued, raw }, ... }
-    Object.entries(data.tafs || {}).forEach(([iata, t]) => {
-        const parsed = parseTaf(t);
-        const entry = parsed || { hdr:'', raw:'', lines:[] };
-        TAF_CACHE[iata] = entry;
-        TAF_CACHE[iata].oat        = t.oat        ?? null;
-        TAF_CACHE[iata].qnh        = t.qnh        ?? null;
-        TAF_CACHE[iata].hourly_oat = t.hourly_oat ?? null;
-    });
-    save();
-    setStatus('TAF UPDATED: ' + (data.updated || ''));
     renderTaf();
     applyTafToState();
     draw();

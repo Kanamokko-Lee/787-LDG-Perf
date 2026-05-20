@@ -1,14 +1,7 @@
-import requests
+import re
 import json
-from datetime import datetime, timezone, timedelta
-
-STATIONS = [
-    "RJCC","RJAA","RJTT","RJGG","RJOO",
-    "RJBB","RJFF","ROAH","RKSS","RCSS",
-    "RCTP","ZBAA","ZSPD","ZSSS","ZYTL",
-    "VHHH","ZGGG","VVNB","VVTS","VTBS",
-    "WMKK","WSSS","WIII","PHNL"
-]
+import requests
+from datetime import datetime, timezone
 
 IATA = {
     "RJCC":"CTS","RJAA":"NRT","RJTT":"HND","RJGG":"NGO","RJOO":"ITM",
@@ -29,16 +22,57 @@ APTS = {
     "SIN":(1.36,103.99),"CGK":(-6.12,106.65),"HNL":(21.31,-157.92)
 }
 
-def fetch_taf_data():
-    ids = ",".join(STATIONS)
+def extract_icao(raw):
+    """RAWテキストから4文字ICAOコードを確実に抽出する"""
+    # パターン: 4文字大文字 + 空白 + 6桁数字 + Z
+    # 例: "TAF RJTT 191705Z", "TAF AMD RJTT 191705Z", "RJTT 191705Z"
+    m = re.search(r'\b([A-Z]{4})\s+\d{6}Z\b', raw)
+    if m:
+        return m.group(1)
+    return None
+
+def fetch_taf():
+    icao_list = list(IATA.keys())
+    ids = ",".join(icao_list)
     url = f"https://aviationweather.gov/api/data/taf?ids={ids}&format=json&metar=false"
     headers = {"User-Agent": "787-LDG-Perf/1.0 github.com/Kanamokko-Lee/787-LDG-Perf"}
     r = requests.get(url, timeout=30, headers=headers)
     r.raise_for_status()
-    return r.json()
+    items = r.json()
+    print(f"Got {len(items)} items from API")
 
-def fetch_temperatures():
-    """open-meteoから全空港の気温予報を取得"""
+    result = {}
+    for item in items:
+        # RAWテキスト取得（複数フィールド名に対応）
+        raw = ""
+        for key in ("rawTAF", "raw_text", "text", "tafText"):
+            raw = (item.get(key) or "").strip()
+            if raw:
+                break
+        if not raw:
+            print(f"  SKIP: no raw text in {list(item.keys())}")
+            continue
+
+        # ICAOコード抽出
+        icao = extract_icao(raw)
+        if not icao:
+            print(f"  SKIP: cannot extract ICAO from: {raw[:50]}")
+            continue
+
+        iata = IATA.get(icao)
+        if not iata:
+            print(f"  SKIP: unknown ICAO {icao}")
+            continue
+
+        issued = (item.get("issueTime") or item.get("issue_time") or
+                  item.get("reportTime") or "")
+        result[iata] = {"icao": icao, "issued": issued, "raw": raw}
+        print(f"  OK: {iata} ({icao}) {raw[:50]}...")
+
+    return result
+
+def fetch_temperatures(result):
+    """open-meteoから気温・気圧を取得してresultにマージ"""
     iatas = list(APTS.keys())
     lats = ",".join(str(APTS[k][0]) for k in iatas)
     lons = ",".join(str(APTS[k][1]) for k in iatas)
@@ -55,76 +89,35 @@ def fetch_temperatures():
     now_utc = datetime.now(timezone.utc)
     now_str = now_utc.strftime("%Y-%m-%dT%H:00")
 
-    result = {}
     for i, iata in enumerate(iatas):
         d = arr[i] if i < len(arr) else arr[0]
-        # 現況気温・気圧
-        cur_oat = round(d.get("current", {}).get("temperature_2m", 15))
-        cur_qnh = d.get("current", {}).get("pressure_msl", 1013)
-        # 時間別気温（現在から24時間分）
+        cur = d.get("current", {})
+        oat = round(cur.get("temperature_2m", 15))
+        qnh = cur.get("pressure_msl", 1013)
         times = d.get("hourly", {}).get("time", [])
         oats  = d.get("hourly", {}).get("temperature_2m", [])
         start = next((j for j, t in enumerate(times) if t >= now_str), 0)
-        hourly = [round(oats[start + h]) if (start + h) < len(oats) else cur_oat
+        hourly = [round(oats[start + h]) if (start + h) < len(oats) else oat
                   for h in range(24)]
-        result[iata] = {
-            "oat": cur_oat,
-            "qnh": cur_qnh,
-            "hourly_oat": hourly  # index 0=now, 1=+1h, ...
-        }
-        print(f"  Temp {iata}: {cur_oat}°C, QNH: {cur_qnh}hPa")
-    return result
+        entry = result.get(iata, {"icao": "", "issued": "", "raw": ""})
+        entry["oat"] = oat
+        entry["qnh"] = qnh
+        entry["hourly_oat"] = hourly
+        result[iata] = entry
+        print(f"  Temp {iata}: {oat}°C QNH:{qnh}")
 
 def main():
     now = datetime.now(timezone.utc)
-    print(f"Fetching TAF + temperatures at {now.isoformat()}")
+    print(f"=== fetch_taf.py start {now.isoformat()} ===")
 
-    # TAF取得
-    taf_data = fetch_taf_data()
-    print(f"  Got {len(taf_data)} TAF records")
-    if taf_data:
-        print(f"  First record keys: {list(taf_data[0].keys())}")
-    result = {}
-    for item in taf_data:
-        # 複数のフィールド名に対応
-        raw = (item.get("rawTAF") or item.get("raw_text") or item.get("text") or "").strip()
-        if not raw:
-            print(f"  SKIP (no raw): {list(item.keys())}")
-            continue
-        # ICAOコード取得：フィールドから取れない場合はRAWテキストから抽出
-        icao = (item.get("stationId") or item.get("station_id") or
-                item.get("icaoId") or item.get("icao_id") or "").strip()
-        if not icao:
-            import re
-            # "TAF AMD RJTT ...", "TAF COR RJTT ...", "TAF RJTT ..." すべてに対応
-            m = re.search(r'\b([A-Z]{4})\s+\d{6}Z\b', raw)
-            if m:
-                icao = m.group(1)
-        iata = IATA.get(icao, icao)
-        issued = item.get("issueTime") or item.get("issue_time") or item.get("reportTime") or ""
-        result[iata] = {"icao": icao, "issued": issued, "raw": raw}
-        print(f"  TAF {iata} ({icao}): {raw[:60]}...")
+    result = fetch_taf()
+    print(f"TAF: got {len(result)} airports")
 
-    # 気温取得してマージ
     try:
-        temps = fetch_temperatures()
-        for iata, t in temps.items():
-            if iata in result:
-                result[iata]["oat"]        = t["oat"]
-                result[iata]["qnh"]        = t["qnh"]
-                result[iata]["hourly_oat"] = t["hourly_oat"]
-            else:
-                # TAFがない空港も気温だけ保存
-                result[iata] = {
-                    "icao": "",
-                    "issued": "",
-                    "raw": "",
-                    "oat": t["oat"],
-                    "qnh": t["qnh"],
-                    "hourly_oat": t["hourly_oat"]
-                }
+        fetch_temperatures(result)
+        print("Temperatures: OK")
     except Exception as e:
-        print(f"Temperature fetch failed: {e}")
+        print(f"Temperatures FAILED: {e}")
 
     output = {
         "updated": now.strftime("%Y-%m-%dT%H:%M:%SZ"),
@@ -132,7 +125,7 @@ def main():
     }
     with open("taf.json", "w", encoding="utf-8") as f:
         json.dump(output, f, ensure_ascii=False, indent=2)
-    print(f"Saved {len(result)} entries to taf.json")
+    print(f"=== Saved {len(result)} entries to taf.json ===")
 
 if __name__ == "__main__":
     main()
