@@ -554,6 +554,8 @@ async function refreshTaf() {
 
         save();
         const now = new Date();
+        const nowStr = now.toISOString();
+        localStorage.setItem('taf_cache_time', nowStr);
         const hhmm = now.getUTCHours().toString().padStart(2,'0') + ':' + now.getUTCMinutes().toString().padStart(2,'0');
         setStatus('LIVE UPDATED ' + hhmm + 'Z');
     } catch(e) {
@@ -713,29 +715,46 @@ function applyTafToState() {
 function calcWindFromTaf() { applyTafToState(); }
 
 async function fetchAllTaf() {
-    setStatus('FETCHING TAF...');
+    setStatus('LOADING...');
+
+    // localStorageのキャッシュ時刻を確認
+    const cacheTimeStr = localStorage.getItem('taf_cache_time') || '';
+
     try {
         const r = await fetch('./taf.json?t=' + Date.now());
         if (!r.ok) throw new Error('taf.json ' + r.status);
         const data = await r.json();
-        Object.entries(data.tafs || {}).forEach(([iata, t]) => {
-            const parsed = parseTaf(t);
-            const entry = parsed || { hdr:'', raw:'', lines:[] };
-            TAF_CACHE[iata] = entry;
-            // groupsとMETARデータを保存
-            TAF_CACHE[iata].groups      = t.groups      ?? [];
-            TAF_CACHE[iata].metar_wdir  = t.metar_wdir  ?? null;
-            TAF_CACHE[iata].metar_wspd  = t.metar_wspd  ?? null;
-            TAF_CACHE[iata].metar_oat   = t.metar_oat   ?? null;
-            TAF_CACHE[iata].metar_qnh   = t.metar_qnh   ?? null;
-            TAF_CACHE[iata].metar_raw   = t.metar_raw   ?? null;
-            TAF_CACHE[iata].hourly_oat  = t.hourly_oat  ?? null;
-        });
-        save();
-        const updStr = (data.updated || '').replace('T', ' ').replace(/:00Z$/, 'Z').replace(/:\d{2}Z$/, 'Z');
-        setStatus('TAF UPDATED: ' + updStr);
+        const jsonUpdated = data.updated || '';
+
+        // localStorageのデータがtaf.jsonより新しければそちらを使う
+        if (cacheTimeStr && cacheTimeStr > jsonUpdated && Object.keys(TAF_CACHE).length > 0) {
+            const updStr = cacheTimeStr.replace('T', ' ').slice(0, 16) + 'Z (cached)';
+            setStatus('TAF: ' + updStr);
+        } else {
+            // taf.jsonの方が新しい → 上書き
+            Object.entries(data.tafs || {}).forEach(([iata, t]) => {
+                const parsed = parseTaf(t);
+                const entry = parsed || { hdr:'', raw:'', lines:[] };
+                TAF_CACHE[iata] = entry;
+                TAF_CACHE[iata].groups      = t.groups      ?? [];
+                TAF_CACHE[iata].metar_wdir  = t.metar_wdir  ?? null;
+                TAF_CACHE[iata].metar_wspd  = t.metar_wspd  ?? null;
+                TAF_CACHE[iata].metar_oat   = t.metar_oat   ?? null;
+                TAF_CACHE[iata].metar_qnh   = t.metar_qnh   ?? null;
+                TAF_CACHE[iata].metar_raw   = t.metar_raw   ?? null;
+                TAF_CACHE[iata].hourly_oat  = t.hourly_oat  ?? null;
+            });
+            localStorage.setItem('taf_cache_time', jsonUpdated);
+            save();
+            const updStr = jsonUpdated.replace('T', ' ').slice(0, 16) + 'Z';
+            setStatus('TAF: ' + updStr);
+        }
     } catch(e) {
-        setStatus('TAF CACHE: ' + Object.keys(TAF_CACHE).length + ' airports');
+        if (Object.keys(TAF_CACHE).length > 0) {
+            setStatus('TAF: CACHED ' + Object.keys(TAF_CACHE).length + ' apts');
+        } else {
+            setStatus('TAF LOAD FAILED');
+        }
     }
     renderTaf();
     applyTafToState();

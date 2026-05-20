@@ -1,0 +1,42 @@
+name: Fetch TAF Data
+
+on:
+  schedule:
+    - cron: '0 * * * *'    # 毎時0分
+    - cron: '20 23 * * *'  # 23:20Z (TAF更新)
+    - cron: '20 2 * * *'   # 02:20Z (TAF更新)
+    - cron: '20 5 * * *'   # 05:20Z (TAF更新)
+    - cron: '20 8 * * *'   # 08:20Z (TAF更新)
+    - cron: '20 11 * * *'  # 11:20Z (TAF更新)
+    - cron: '20 14 * * *'  # 14:20Z (TAF更新)
+    - cron: '20 17 * * *'  # 17:20Z (TAF更新)
+    - cron: '20 20 * * *'  # 20:20Z (TAF更新)
+  workflow_dispatch:
+
+jobs:
+  fetch-taf:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install requests
+        run: pip install requests
+
+      - name: Fetch TAF
+        run: python fetch_taf.py
+
+      - name: Commit and push taf.json
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add taf.json
+          git diff --cached --quiet || git commit -m "Update TAF data"
+          git push
