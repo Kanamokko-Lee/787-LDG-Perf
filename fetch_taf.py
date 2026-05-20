@@ -91,11 +91,19 @@ def main():
         if not raw:
             print(f"  SKIP (no raw): {list(item.keys())}")
             continue
-        icao = item.get("stationId") or item.get("station_id") or item.get("icaoId") or ""
+        # ICAOコード取得：フィールドから取れない場合はRAWテキストの先頭から抽出
+        icao = (item.get("stationId") or item.get("station_id") or
+                item.get("icaoId") or item.get("icao_id") or "").strip()
+        if not icao:
+            # "TAF RJTT 191705Z..." または "RJTT 191705Z..." の形式から抽出
+            import re
+            m = re.match(r'^(?:TAF\s+)?([A-Z]{4})\s+\d{6}Z', raw)
+            if m:
+                icao = m.group(1)
         iata = IATA.get(icao, icao)
         issued = item.get("issueTime") or item.get("issue_time") or item.get("reportTime") or ""
         result[iata] = {"icao": icao, "issued": issued, "raw": raw}
-        print(f"  TAF {iata}: {raw[:60]}...")
+        print(f"  TAF {iata} ({icao}): {raw[:60]}...")
 
     # 気温取得してマージ
     try:
