@@ -274,10 +274,10 @@
 
     <!-- Path Expansion Visualizer -->
     <div style="background:#060b14;border:1px solid #1e293b;border-radius:8px;margin-bottom:10px;padding:8px;position:relative;">
-      <svg id="path-svg" viewBox="0 0 500 210" style="width:100%;display:block;overflow:hidden;">
+      <svg id="path-svg" viewBox="0 0 500 175" style="width:100%;display:block;overflow:hidden;">
         <defs>
           <clipPath id="viz-clip">
-            <rect x="0" y="0" width="500" height="210"/>
+            <rect x="0" y="0" width="500" height="175"/>
           </clipPath>
           <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
             <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -300,11 +300,10 @@
           <text id="viz-lbl-y"    fill="#ef4444" font-size="14" font-family="monospace" font-weight="800"></text>
           <text id="viz-lbl-papi" fill="#3b82f6" font-size="14" font-family="monospace" font-weight="700"></text>
           <text id="viz-lbl-z"    fill="#eab308" font-size="14" font-family="monospace" font-weight="700"></text>
-          <!-- Descent rate display below ground line -->
-          <text id="viz-rod-label" fill="#64748b" font-size="11" font-family="monospace" x="4" y="187">DESCENT RATE</text>
-          <text id="viz-rod-papi" fill="#3b82f6" font-size="13" font-family="monospace" font-weight="700" x="4"   y="205"></text>
-          <text id="viz-rod-y"    fill="#ef4444" font-size="13" font-family="monospace" font-weight="700" x="175" y="205"></text>
-          <text id="viz-rod-z"    fill="#eab308" font-size="13" font-family="monospace" font-weight="700" x="345" y="205"></text>
+          <!-- Descent rate: positioned dynamically below each label -->
+          <text id="viz-rod-y"    fill="#ef4444" font-size="12" font-family="monospace" font-weight="600"></text>
+          <text id="viz-rod-papi" fill="#3b82f6" font-size="12" font-family="monospace" font-weight="600"></text>
+          <text id="viz-rod-z"    fill="#eab308" font-size="12" font-family="monospace" font-weight="600"></text>
         </g>
       </svg>
     </div>
@@ -841,18 +840,21 @@ function drawViz() {
     }
 
     // ラベル：PAPIは線端追従、Y=左上固定、Z=右下固定
-    const setLbl = (id, disp, len, text, big, show) => {
+    const setLbl = (id, text, big, show) => {
         const el = document.getElementById(id);
         if (!show) { el.textContent = ''; return; }
         el.setAttribute('font-size', big ? '17' : '14');
         el.setAttribute('font-weight', big ? '900' : '700');
         el.textContent = text;
     };
+
     // PAPI：線端追従
     const lblPapi = document.getElementById('viz-lbl-papi');
     const lpPapi = vizTip(dispPapi, lenPapi + 8);
-    lblPapi.setAttribute('x', Math.min(lpPapi.x, 486).toFixed(1));
-    lblPapi.setAttribute('y', Math.min(Math.max(lpPapi.y + 4, 14), 165).toFixed(1));
+    const papiX = Math.min(lpPapi.x, 486);
+    const papiY = Math.min(Math.max(lpPapi.y + 4, 14), 155);
+    lblPapi.setAttribute('x', papiX.toFixed(1));
+    lblPapi.setAttribute('y', papiY.toFixed(1));
     lblPapi.setAttribute('text-anchor', lpPapi.x > 400 ? 'end' : 'start');
     lblPapi.setAttribute('font-size', '14');
     lblPapi.setAttribute('font-weight', '700');
@@ -864,17 +866,36 @@ function drawViz() {
         lblY.setAttribute('x', '6');
         lblY.setAttribute('y', '20');
         lblY.setAttribute('text-anchor', 'start');
-        setLbl('viz-lbl-y', dispY, lenY, `Y: ${effY3.toFixed(2)}°`, yIsCloser, true);
+        setLbl('viz-lbl-y', `Y: ${effY3.toFixed(2)}°`, yIsCloser, true);
     } else {
         lblY.textContent = '';
     }
 
-    // Z（黄）：右下固定（groundラインの少し上）
+    // Z（黄）：右下固定
     const lblZ = document.getElementById('viz-lbl-z');
     lblZ.setAttribute('x', '494');
-    lblZ.setAttribute('y', '158');
+    lblZ.setAttribute('y', '148');
     lblZ.setAttribute('text-anchor', 'end');
-    setLbl('viz-lbl-z', dispZuse, lenZ, isHND ? `Z: ${effZ3.toFixed(2)}°` : '3.0°', !yIsCloser, true);
+    setLbl('viz-lbl-z', isHND ? `Z: ${effZ3.toFixed(2)}°` : '3.0°', !yIsCloser, true);
+
+    // Descent rate: 各ラベルの直下に配置（draw()から値を受け取る）
+    // Y直下 (x=6, y=36)
+    const rodY = document.getElementById('viz-rod-y');
+    rodY.setAttribute('x', '6');
+    rodY.setAttribute('y', '36');
+    rodY.setAttribute('text-anchor', 'start');
+
+    // PAPI直下
+    const rodPapi = document.getElementById('viz-rod-papi');
+    rodPapi.setAttribute('x', papiX.toFixed(1));
+    rodPapi.setAttribute('y', (papiY + 16).toFixed(1));
+    rodPapi.setAttribute('text-anchor', lpPapi.x > 400 ? 'end' : 'start');
+
+    // Z直下 (x=494, y=164)
+    const rodZ = document.getElementById('viz-rod-z');
+    rodZ.setAttribute('x', '494');
+    rodZ.setAttribute('y', '164');
+    rodZ.setAttribute('text-anchor', 'end');
 
     // 弧：Y（HNDのみ）
     const ayEl = document.getElementById('viz-arc-y');
@@ -942,12 +963,13 @@ function draw() {
         const effY2  = vizEffAngle(3.25, oat2);
         const effZ2  = vizEffAngle(3.02, oat2);
         const eff32  = vizEffAngle(3.0,  oat2);
-        const rodPapi = calcDescentRate(S.path, vapp);
-        const rodRodY = isHND2 ? calcDescentRate(effY2, vapp) : null;
-        const rodRodZ = isHND2 ? calcDescentRate(effZ2, vapp) : calcDescentRate(eff32, vapp);
-        document.getElementById('viz-rod-papi').textContent = `PAPI ${rodPapi} ft/m`;
-        document.getElementById('viz-rod-y').textContent    = isHND2 ? `Y ${rodRodY} ft/m` : '';
-        document.getElementById('viz-rod-z').textContent    = isHND2 ? `Z ${rodRodZ} ft/m` : `3.0° ${rodRodZ} ft/m`;
+        const rodPapiVal = calcDescentRate(S.path, vapp);
+        const rodYVal    = isHND2 ? calcDescentRate(effY2, vapp) : null;
+        const rodZVal    = isHND2 ? calcDescentRate(effZ2, vapp) : calcDescentRate(eff32, vapp);
+        // SVG内の descent rate テキストを更新
+        document.getElementById('viz-rod-papi').textContent = `${rodPapiVal} ft/m`;
+        document.getElementById('viz-rod-y').textContent    = isHND2 ? `${rodYVal} ft/m` : '';
+        document.getElementById('viz-rod-z').textContent    = `${rodZVal} ft/m`;
     } else {
         vrefEl.textContent = '--- / --- kt';
         document.getElementById('viz-rod-papi').textContent = '';
