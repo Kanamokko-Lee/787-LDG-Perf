@@ -8,7 +8,8 @@ IATA = {
     "RJBB":"KIX","RJFF":"FUK","ROAH":"OKA","RKSS":"GMP","RCSS":"TSA",
     "RCTP":"TPE","ZBAA":"PEK","ZSPD":"PVG","ZSSS":"SHA","ZYTL":"DLC",
     "VHHH":"HKG","ZGGG":"CAN","VVNB":"HAN","VVTS":"SGN","VTBS":"BKK",
-    "WMKK":"KUL","WSSS":"SIN","WIII":"CGK","PHNL":"HNL"
+    "WMKK":"KUL","WSSS":"SIN","WIII":"CGK","PHNL":"HNL",
+    "KLAX":"LAX","KSAN":"SAN"
 }
 
 APTS = {
@@ -19,17 +20,19 @@ APTS = {
     "PVG":(31.14,121.80),"SHA":(31.19,121.33),"DLC":(38.97,121.54),
     "HKG":(22.30,113.91),"CAN":(23.39,113.29),"HAN":(21.22,105.80),
     "SGN":(10.81,106.65),"BKK":(13.69,100.75),"KUL":(2.74,101.70),
-    "SIN":(1.36,103.99),"CGK":(-6.12,106.65),"HNL":(21.31,-157.92)
+    "SIN":(1.36,103.99),"CGK":(-6.12,106.65),"HNL":(21.31,-157.92),
+    "LAX":(33.94,-118.41),"SAN":(32.73,-117.19)
 }
 
 HEADERS = {"User-Agent": "787-LDG-Perf/1.0 github.com/Kanamokko-Lee/787-LDG-Perf"}
 
-def extract_icao(raw):
+def extract_icao_from_raw(raw):
+    """RAWテキストから4文字ICAOコードを抽出"""
+    # METAR/TAF共通: 4大文字 + 空白 + 6桁数字Z
     m = re.search(r'\b([A-Z]{4})\s+\d{6}Z\b', raw)
     return m.group(1) if m else None
 
 def parse_wind(raw):
-    """RAWテキストから風向・風速を抽出"""
     m = re.search(r'\b(VRB|(\d{3}))(\d{2,3})(G\d{2,3})?KT\b', raw)
     if not m:
         return None, None
@@ -37,24 +40,21 @@ def parse_wind(raw):
         return 'VRB', int(m.group(3))
     return int(m.group(2)), int(m.group(3))
 
-def parse_qnh(raw):
-    """METARからQNH(hPa)を抽出"""
+def parse_qnh_hpa(raw):
     m = re.search(r'\bQ(\d{4})\b', raw)
     if m:
         return int(m.group(1))
+    # A形式(inHg*100) → hPa
     m = re.search(r'\bA(\d{4})\b', raw)
     if m:
-        return round(int(m.group(1)) * 0.0338639 * 100) / 100 * 33.8639
+        return round(int(m.group(1)) * 0.33864)
     return None
 
 def parse_temp(raw):
-    """METARから気温を抽出"""
     m = re.search(r'\b(M?)(\d{2})/(M?)(\d{2})\b', raw)
     if m:
         t = int(m.group(2))
-        if m.group(1) == 'M':
-            t = -t
-        return t
+        return -t if m.group(1) == 'M' else t
     return None
 
 def fetch_taf_data():
@@ -62,14 +62,27 @@ def fetch_taf_data():
     url = f"https://aviationweather.gov/api/data/taf?ids={ids}&format=json&metar=false"
     r = requests.get(url, timeout=30, headers=HEADERS)
     r.raise_for_status()
-    return r.json()
+    data = r.json()
+    print(f"TAF API: {len(data)} records")
+    if data:
+        print(f"  Sample keys: {list(data[0].keys())[:8]}")
+    return data
 
 def fetch_metar_data():
     ids = ",".join(IATA.keys())
     url = f"https://aviationweather.gov/api/data/metar?ids={ids}&format=json&hours=2"
     r = requests.get(url, timeout=30, headers=HEADERS)
     r.raise_for_status()
-    return r.json()
+    data = r.json()
+    print(f"METAR API: {len(data)} records")
+    if data:
+        print(f"  Sample keys: {list(data[0].keys())[:8]}")
+        # 最初のレコードのrawフィールドを確認
+        for k in ("rawOb","raw_text","rawMETAR","metar","obs"):
+            if data[0].get(k):
+                print(f"  Raw field '{k}': {str(data[0][k])[:60]}")
+                break
+    return data
 
 def fetch_temperatures():
     iatas = list(APTS.keys())
@@ -94,147 +107,111 @@ def fetch_temperatures():
         times = d.get("hourly", {}).get("time", [])
         oats  = d.get("hourly", {}).get("temperature_2m", [])
         start = next((j for j, t in enumerate(times) if t >= now_str), 0)
-        hourly_oat = [round(oats[start + h]) if (start + h) < len(oats) else oat
-                      for h in range(25)]
+        hourly_oat = [round(oats[start+h]) if (start+h)<len(oats) else oat for h in range(25)]
         result[iata] = {"oat": oat, "qnh": qnh, "hourly_oat": hourly_oat}
     return result
 
 def build_taf_groups(raw, now_utc):
-    """
-    TAFのRAWテキストを解析し、時間ごとのグループを作成。
-    各グループに開始時刻(UTC hour offset from now)と風情報を付与。
-    """
-    # FM/BECMG/TEMPO/PROBで分割
     sections = re.split(r'\s+(?=FM\d{6}|BECMG\s+\d{4}/\d{4}|TEMPO\s+\d{4}/\d{4}|PROB\d{2})', raw.strip())
     groups = []
     now_day  = now_utc.day
     now_hour = now_utc.hour
-
     for sec in sections:
         sec = sec.strip()
         if not sec:
             continue
-
-        # 開始時刻を取得
         start_day, start_hour = None, None
-
-        # FM: FM2006xx
         fm = re.match(r'FM(\d{2})(\d{2})\d{2}', sec)
         if fm:
-            start_day  = int(fm.group(1))
-            start_hour = int(fm.group(2))
-
-        # ヘッダー行: ICAO DDHHMMZ DDHH/DDHH
+            start_day, start_hour = int(fm.group(1)), int(fm.group(2))
         hdr = re.search(r'\b[A-Z]{4}\s+\d{6}Z\s+(\d{2})(\d{2})/\d{4}', sec)
         if hdr and start_day is None:
-            start_day  = int(hdr.group(1))
-            start_hour = int(hdr.group(2))
-
-        # BECMG/TEMPO: DDDD/DDDD
+            start_day, start_hour = int(hdr.group(1)), int(hdr.group(2))
         bt = re.match(r'(?:BECMG|TEMPO)\s+(\d{2})(\d{2})/\d{4}', sec)
         if bt and start_day is None:
-            start_day  = int(bt.group(1))
-            start_hour = int(bt.group(2))
-
-        # UTC offset時間を計算
-        if start_day is not None and start_hour is not None:
+            start_day, start_hour = int(bt.group(1)), int(bt.group(2))
+        if start_day is not None:
             day_diff = start_day - now_day
-            if day_diff < -15: day_diff += 30  # 月末跨ぎ
+            if day_diff < -15: day_diff += 30
             offset_h = day_diff * 24 + (start_hour - now_hour)
         else:
             offset_h = 0
-
-        # 風情報
         wdir, wspd = parse_wind(sec)
-
-        groups.append({
-            "text": sec,
-            "offset_h": offset_h,  # nowからの時間オフセット
-            "wdir": wdir,
-            "wspd": wspd
-        })
-
+        groups.append({"text": sec, "offset_h": offset_h, "wdir": wdir, "wspd": wspd})
     return groups
 
 def main():
     now = datetime.now(timezone.utc)
     print(f"=== fetch_taf.py {now.isoformat()} ===")
 
-    # TAF取得
-    taf_items = fetch_taf_data()
-    print(f"TAF: {len(taf_items)} items")
-
     result = {}
-    for item in taf_items:
-        raw = ""
-        for key in ("rawTAF", "raw_text", "text", "tafText"):
-            raw = (item.get(key) or "").strip()
-            if raw:
-                break
-        if not raw:
-            continue
-        icao = extract_icao(raw)
-        if not icao or icao not in IATA:
-            continue
-        iata = IATA[icao]
-        issued = item.get("issueTime") or item.get("issue_time") or ""
-        groups = build_taf_groups(raw, now)
-        result[iata] = {
-            "icao": icao, "issued": issued, "raw": raw,
-            "groups": groups
-        }
-        print(f"  TAF {iata}: {len(groups)} groups")
 
-    # METAR取得（現況wind/oat/qnh）
+    # TAF取得
+    try:
+        taf_items = fetch_taf_data()
+        for item in taf_items:
+            raw = ""
+            for key in ("rawTAF","raw_text","text","tafText"):
+                raw = (item.get(key) or "").strip()
+                if raw: break
+            if not raw: continue
+            icao = extract_icao_from_raw(raw)
+            if not icao or icao not in IATA: continue
+            iata = IATA[icao]
+            issued = item.get("issueTime") or item.get("issue_time") or ""
+            groups = build_taf_groups(raw, now)
+            result[iata] = {"icao": icao, "issued": issued, "raw": raw, "groups": groups}
+            print(f"  TAF {iata}({icao}): {len(groups)} groups")
+    except Exception as e:
+        print(f"TAF FAILED: {e}")
+
+    # METAR取得
     try:
         metar_items = fetch_metar_data()
-        print(f"METAR: {len(metar_items)} items")
-        # 最新METARのみ使用（station_idでまとめて最新を選ぶ）
         metar_latest = {}
         for m in metar_items:
-            raw_m = (m.get("rawOb") or m.get("raw_text") or "").strip()
+            # 複数のフィールド名を試す
+            raw_m = ""
+            for key in ("rawOb","raw_text","rawMETAR","metar","obs","rawob"):
+                raw_m = (m.get(key) or "").strip()
+                if raw_m: break
             if not raw_m:
+                # フィールドが見つからない場合は全フィールドをdump
+                print(f"  METAR no raw: {dict(list(m.items())[:5])}")
                 continue
-            icao = extract_icao(raw_m)
-            if not icao or icao not in IATA:
-                continue
+            icao = extract_icao_from_raw(raw_m)
+            if not icao or icao not in IATA: continue
             iata = IATA[icao]
-            # observationTimeで最新を選ぶ
-            obs_time = m.get("observationTime") or m.get("observation_time") or ""
+            obs_time = m.get("observationTime") or m.get("observation_time") or m.get("reportTime") or ""
             if iata not in metar_latest or obs_time > metar_latest[iata]["obs_time"]:
-                wdir, wspd = parse_wind(raw_m)
-                oat  = parse_temp(raw_m)
-                qnh  = parse_qnh(raw_m)
                 metar_latest[iata] = {
                     "raw": raw_m, "obs_time": obs_time,
-                    "wdir": wdir, "wspd": wspd,
-                    "oat": oat, "qnh": qnh
+                    "wdir": parse_wind(raw_m)[0],
+                    "wspd": parse_wind(raw_m)[1],
+                    "oat":  parse_temp(raw_m),
+                    "qnh":  parse_qnh_hpa(raw_m)
                 }
         for iata, mv in metar_latest.items():
-            if iata in result:
-                result[iata]["metar_wdir"] = mv["wdir"]
-                result[iata]["metar_wspd"] = mv["wspd"]
-                result[iata]["metar_oat"]  = mv["oat"]
-                result[iata]["metar_qnh"]  = mv["qnh"]
-                result[iata]["metar_raw"]  = mv["raw"]
-            print(f"  METAR {iata}: wind={mv['wdir']}/{mv['wspd']} oat={mv['oat']} qnh={mv['qnh']}")
+            entry = result.setdefault(iata, {"icao":"","issued":"","raw":"","groups":[]})
+            entry["metar_raw"]  = mv["raw"]
+            entry["metar_wdir"] = mv["wdir"]
+            entry["metar_wspd"] = mv["wspd"]
+            entry["metar_oat"]  = mv["oat"]
+            entry["metar_qnh"]  = mv["qnh"]
+            print(f"  METAR {iata}: {mv['raw'][:50]}")
     except Exception as e:
         print(f"METAR FAILED: {e}")
 
-    # 気温予報（open-meteo）
+    # 気温予報
     try:
         temps = fetch_temperatures()
         for iata, t in temps.items():
-            if iata in result:
-                result[iata]["hourly_oat"] = t["hourly_oat"]
-            else:
-                result[iata] = {"icao":"","issued":"","raw":"","groups":[],
-                                "hourly_oat": t["hourly_oat"]}
-            # METARのoat/qnhがない場合のフォールバック
-            if iata in result and result[iata].get("metar_oat") is None:
-                result[iata]["metar_oat"] = t["oat"]
-            if iata in result and result[iata].get("metar_qnh") is None:
-                result[iata]["metar_qnh"] = t["qnh"]
+            entry = result.setdefault(iata, {"icao":"","issued":"","raw":"","groups":[]})
+            entry["hourly_oat"] = t["hourly_oat"]
+            if not entry.get("metar_oat"):
+                entry["metar_oat"] = t["oat"]
+            if not entry.get("metar_qnh"):
+                entry["metar_qnh"] = t["qnh"]
         print("Temperatures: OK")
     except Exception as e:
         print(f"Temperatures FAILED: {e}")
