@@ -321,16 +321,15 @@
     <div id="viz-ai" style="display:none;margin-bottom:10px;">
       <div style="background:#0f172a;border:1px solid #6366f1;border-radius:8px;padding:8px;position:relative;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-          <span style="color:#6366f1;font-size:11px;font-weight:bold;font-family:monospace;">PAPI LIGHTS</span>
+          <span style="color:#6366f1;font-size:11px;font-weight:bold;font-family:monospace;">APPROACH PROFILE</span>
           <button onclick="openPapiFullscreen()" style="background:#6366f1;color:#fff;border:none;border-radius:4px;padding:4px 10px;font-size:11px;font-weight:bold;cursor:pointer;">⛶ FULL</button>
         </div>
-        <!-- PAPIランプだけ見えるようにクリップ -->
-        <div style="overflow:hidden;border-radius:6px;height:130px;position:relative;">
+        <!-- グラフ部分だけ表示 -->
+        <div style="overflow:hidden;border-radius:6px;height:160px;position:relative;">
           <iframe id="papi-iframe" src="papi_analyzer.html"
-            style="width:900px;height:800px;border:none;display:block;pointer-events:none;
-                   transform:scale(0.55);transform-origin:top left;
-                   margin-right:-405px;margin-bottom:-470px;
-                   position:relative;top:-340px;"
+            style="width:820px;height:900px;border:none;display:block;pointer-events:none;
+                   transform:scale(0.58);transform-origin:top left;
+                   position:relative;top:-58px;left:0;"
             scrolling="no"></iframe>
           <div onclick="openPapiFullscreen()" style="position:absolute;inset:0;cursor:pointer;"></div>
         </div>
