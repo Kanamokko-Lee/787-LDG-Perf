@@ -271,7 +271,7 @@
 
   <!-- RIGHT PANEL -->
   <div class="panel" style="max-width:500px;">
-    <!-- PATH入力 -->
+    <!-- PATH入力 + 切り替えボタン -->
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
       <span style="color:var(--grey);font-size:11px;font-weight:bold;white-space:nowrap;">PAPI</span>
       <div class="ibox w210">
@@ -283,10 +283,12 @@
       </div>
       <button id="btn-path-y" onclick="setPath(3.25)" style="display:none;background:#1a1a1a;border:1px solid #ef4444;color:#ef4444;border-radius:4px;padding:0 10px;height:36px;cursor:pointer;font-weight:bold;font-size:13px;">Y</button>
       <button id="btn-path-z" onclick="setPath(3.02)" style="display:none;background:#1a1a1a;border:1px solid #3b82f6;color:#3b82f6;border-radius:4px;padding:0 10px;height:36px;cursor:pointer;font-weight:bold;font-size:13px;">Z</button>
+      <!-- ビジュアライザー切り替え -->
+      <button onclick="toggleViz()" id="btn-viz-toggle" style="margin-left:auto;background:#1a1a1a;border:1px solid #6366f1;color:#6366f1;border-radius:4px;padding:0 8px;height:36px;cursor:pointer;font-weight:bold;font-size:11px;white-space:nowrap;">AI</button>
     </div>
 
-    <!-- Path Expansion Visualizer -->
-    <div style="background:#060b14;border:1px solid #1e293b;border-radius:8px;margin-bottom:10px;padding:8px;position:relative;">
+    <!-- 元のビジュアライザー -->
+    <div id="viz-original" style="background:#060b14;border:1px solid #1e293b;border-radius:8px;margin-bottom:10px;padding:8px;position:relative;">
       <svg id="path-svg" viewBox="0 0 500 175" style="width:100%;display:block;overflow:hidden;">
         <defs>
           <clipPath id="viz-clip">
@@ -296,30 +298,30 @@
             <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
           </marker>
         </defs>
-        <!-- Ground line only -->
         <line x1="0" y1="170" x2="500" y2="170" stroke="#334155" stroke-width="1.5"/>
-        <!-- Lines drawn by JS -->
         <line id="viz-z"    x1="0" y1="170" x2="0" y2="170" stroke="#3b82f6" stroke-width="2.5" stroke-linecap="round"/>
         <line id="viz-papi" x1="0" y1="170" x2="0" y2="170" stroke="#ff69b4" stroke-width="2"   stroke-linecap="round"/>
         <line id="viz-y"    x1="0" y1="170" x2="0" y2="170" stroke="#ef4444" stroke-width="4"   stroke-linecap="round"/>
-        <!-- Arc Y vs PAPI -->
         <g clip-path="url(#viz-clip)">
           <path id="viz-arc-y" fill="none" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="3 3"/>
           <text id="viz-arc-y-txt" fill="#ef4444" font-size="17" font-family="monospace" font-weight="900" text-anchor="middle"></text>
-          <!-- Arc Z vs PAPI -->
           <path id="viz-arc-z" fill="none" stroke="#3b82f6" stroke-width="1.5" stroke-dasharray="3 3"/>
           <text id="viz-arc-z-txt" fill="#3b82f6" font-size="17" font-family="monospace" font-weight="900" text-anchor="middle"></text>
-          <!-- Labels -->
           <text id="viz-lbl-y"    fill="#ef4444" font-size="17" font-family="monospace" font-weight="800"></text>
           <text id="viz-lbl-papi" fill="#ff69b4" font-size="17" font-family="monospace" font-weight="700"></text>
           <text id="viz-lbl-z"    fill="#3b82f6" font-size="17" font-family="monospace" font-weight="700"></text>
-          <!-- Descent rate: positioned dynamically below each label -->
           <text id="viz-rod-y"    fill="#ef4444" font-size="17" font-family="monospace" font-weight="700"></text>
           <text id="viz-rod-papi" fill="#ff69b4" font-size="17" font-family="monospace" font-weight="700"></text>
           <text id="viz-rod-z"    fill="#3b82f6" font-size="17" font-family="monospace" font-weight="700"></text>
         </g>
       </svg>
     </div>
+
+    <!-- AI Studio PAPI Analyzer (iframe) -->
+    <div id="viz-ai" style="display:none;margin-bottom:10px;border-radius:8px;overflow:hidden;border:1px solid #6366f1;">
+      <iframe src="papi_analyzer.html" style="width:100%;height:420px;border:none;display:block;" scrolling="no"></iframe>
+    </div>
+
     <table>
       <thead><tr><th>A/B</th><th>ADVISORY (FT)</th><th>1NM (°C)</th><th>2NM (°C)</th></tr></thead>
       <tbody id="tbody"></tbody>
@@ -951,6 +953,17 @@ function adj(f, a) {
 function setModel(m) { S.model=m; S.wgt=(m==='787-8'?320000:360000); draw(); }
 function setFlap(f)  { S.flap=f; draw(); }
 function setPath(v)  { S.path = v; draw(); }
+
+let vizMode = 'original'; // 'original' or 'ai'
+function toggleViz() {
+    vizMode = vizMode === 'original' ? 'ai' : 'original';
+    document.getElementById('viz-original').style.display = vizMode === 'original' ? 'block' : 'none';
+    document.getElementById('viz-ai').style.display       = vizMode === 'ai'       ? 'block' : 'none';
+    const btn = document.getElementById('btn-viz-toggle');
+    btn.textContent = vizMode === 'ai' ? 'MY' : 'AI';
+    btn.style.borderColor = vizMode === 'ai' ? '#ff69b4' : '#6366f1';
+    btn.style.color       = vizMode === 'ai' ? '#ff69b4' : '#6366f1';
+}
 
 function updateYZButtons() {
     const show = S.apt === 'HND';
