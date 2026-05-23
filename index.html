@@ -984,6 +984,7 @@ function closePapiFullscreen() {
     document.getElementById('papi-fullscreen').style.display = 'none';
     document.body.style.overflow = '';
 }
+let vizMode = 'original';
 function toggleViz() {
     vizMode = vizMode === 'original' ? 'ai' : 'original';
     document.getElementById('viz-original').style.display = vizMode === 'original' ? 'block' : 'none';
