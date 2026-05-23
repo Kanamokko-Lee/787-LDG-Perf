@@ -393,6 +393,22 @@ fetchHanedaTemp();
 if (new URLSearchParams(location.search).get('compact') === '1') {
   document.body.classList.add('compact');
 }
+
+// 親ページからOAT（気温）を受け取る
+window.addEventListener('message', (e) => {
+  if (e.data && e.data.type === 'setTemp') {
+    const t = parseInt(e.data.temp);
+    if (!isNaN(t)) {
+      state.temp = t;
+      const slider = document.getElementById('temp-slider');
+      if (slider) slider.value = t;
+      // live-tagをクリア（手動設定扱い）
+      const liveTag = document.getElementById('live-tag');
+      if (liveTag) liveTag.innerHTML = '';
+      updateAll();
+    }
+  }
+});
 </script>
 </body>
 </html>

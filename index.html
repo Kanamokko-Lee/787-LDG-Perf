@@ -1391,6 +1391,11 @@ function draw() {
             tbody.appendChild(tr);
         });
     }
+    // OATをpapi_analyzerに送信
+    const papiIframe = document.getElementById('papi-iframe');
+    if (papiIframe && vizMode === 'ai') {
+        papiIframe.contentWindow?.postMessage({type:'setTemp', temp: S.oat}, '*');
+    }
     save();
     drawViz();
 }
