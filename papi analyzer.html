@@ -37,10 +37,12 @@
     body.compact .md\:col-span-4 { display: none !important; }
     body.compact .lg\:col-span-3 { display: none !important; }
     body.compact h2 { display: none !important; }
+    body.compact h3 { display: none !important; }
     body.compact .glass-effect { display: none !important; }
+    body.compact #temp-dev-badge { display: none !important; }
     body.compact main { grid-template-columns: 1fr !important; padding: 0 !important; gap: 0 !important; }
     body.compact .md\:col-span-8 { grid-column: span 1 !important; }
-    body.compact .rounded-\[1\.5rem\] { border-radius: 0 !important; border: none !important; padding: 4px !important; }
+    body.compact .rounded-\[1\.5rem\] { border-radius: 0 !important; border: none !important; padding: 2px !important; }
   </style>
 </head>
 <body class="min-h-screen flex flex-col">
@@ -340,6 +342,12 @@ function drawSVG(t302, t325, bounds, ach, eh, dNm) {
 
   drawDynamicPath(t302, "#10b981", true);
   drawDynamicPath(t325, "#6366f1", true);
+
+  // PAPI Spec選択中の角度線（ピンク）
+  // general=3.0°, hnd=3.25° がPAPIの基準角度
+  const papiAngle = state.papiMode === 'hnd' ? 3.25 : 3.0;
+  const papiTrue = calcTrueAngle(papiAngle, state.temp);
+  drawDynamicPath(papiTrue, "#ff69b4", true);
 
   const acPos = getCoords(t325, dNm);
   const eyePos = getCoords(t325, dNm, eh);
