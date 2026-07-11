@@ -777,6 +777,11 @@ async function fetchAllTaf() {
     try {
         const r = await fetch('./taf.json?t=' + Date.now());
         if (!r.ok) throw new Error('taf.json ' + r.status);
+        const ct = r.headers.get('content-type') || '';
+        if (ct && !ct.includes('json') && !ct.includes('text')) {
+            // 社内プロキシ等が200で別内容（認証ページ等）を返してきた場合
+            throw new Error('taf.json unexpected content-type: ' + ct);
+        }
         const data = await r.json();
         const jsonUpdated = data.updated || '';
 
@@ -1407,9 +1412,35 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/787-LDG-Perf/sw.js').catch(()=>{});
 }
 
-buildDD();
-load();
-fetchAllTaf();
+// 初期化全体を保護：どこかで例外が出ても画面の骨組みは必ず表示する
+try {
+    buildDD();
+    load();
+} catch (e) {
+    console.error('[init] buildDD/load failed:', e);
+    setStatus('INIT ERROR: ' + (e && e.message ? e.message : e));
+}
+
+// TAF取得はオフライン/プロキシブロックでも握りつぶして問題ないので
+// さらに外側でも保険をかけ、最悪でもUIがロックしないようにする
+Promise.resolve()
+    .then(() => fetchAllTaf())
+    .catch(e => {
+        console.error('[init] fetchAllTaf failed:', e);
+        setStatus('OFFLINE (TAF不可)');
+        // それでも最低限の計算表示は出しておく
+        try { draw(); } catch (e2) { console.error('[init] draw failed:', e2); }
+    });
+
+// タイムアウト保険：何らかの理由でfetchAllTaf系が長時間応答しない場合、
+// 一定時間後に強制的にUIを表示する
+setTimeout(() => {
+    const tbody = document.getElementById('tbody');
+    if (tbody && tbody.children.length === 0) {
+        console.warn('[init] timeout fallback: forcing draw()');
+        try { draw(); } catch (e) { console.error('[init] fallback draw failed:', e); }
+    }
+}, 5000);
 </script>
 </body>
 </html>
