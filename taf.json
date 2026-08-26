@@ -1,6 +1,453 @@
 {
-  "updated": "2026-08-26T04:29:07Z",
+  "updated": "2026-08-26T05:22:55Z",
   "tafs": {
+    "HNL": {
+      "icao": "PHNL",
+      "issued": "2026-08-26T05:20:00.000Z",
+      "raw": "TAF PHNL 260520Z 2606/2712 05012KT P6SM FEW025 FEW040 FM262000 06015G25KT P6SM FEW025 SCT045 FM270600 05012KT P6SM FEW025 FEW045",
+      "groups": [
+        {
+          "text": "TAF PHNL 260520Z 2606/2712 05012KT P6SM FEW025 FEW040",
+          "offset_h": 1,
+          "wdir": 50,
+          "wspd": 12
+        },
+        {
+          "text": "FM262000 06015G25KT P6SM FEW025 SCT045",
+          "offset_h": 15,
+          "wdir": 60,
+          "wspd": 15
+        },
+        {
+          "text": "FM270600 05012KT P6SM FEW025 FEW045",
+          "offset_h": 25,
+          "wdir": 50,
+          "wspd": 12
+        }
+      ],
+      "metar_raw": "METAR PHNL 260453Z 05012KT 10SM FEW025 FEW040 FEW200 28/21 A2998 RMK AO2 SLP150 T02780206 $",
+      "metar_wdir": 50,
+      "metar_wspd": 12,
+      "metar_oat": 28,
+      "metar_qnh": 1015,
+      "hourly_oat": [
+        26,
+        25,
+        25,
+        25,
+        25,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        24,
+        25,
+        27,
+        28,
+        29,
+        29,
+        29,
+        29,
+        29,
+        28,
+        27,
+        26,
+        25
+      ]
+    },
+    "SAN": {
+      "icao": "KSAN",
+      "issued": "2026-08-26T05:20:00.000Z",
+      "raw": "TAF KSAN 260520Z 2606/2712 VRB04KT P6SM SCT010 TEMPO 2611/2615 5SM BR BKN007 FM261900 21008KT P6SM SCT200 FM270300 22006KT P6SM BKN200 FM270500 VRB04KT P6SM FEW010 SCT200",
+      "groups": [
+        {
+          "text": "TAF KSAN 260520Z 2606/2712 VRB04KT P6SM SCT010",
+          "offset_h": 1,
+          "wdir": "VRB",
+          "wspd": 4
+        },
+        {
+          "text": "TEMPO 2611/2615 5SM BR BKN007",
+          "offset_h": 6,
+          "wdir": null,
+          "wspd": null
+        },
+        {
+          "text": "FM261900 21008KT P6SM SCT200",
+          "offset_h": 14,
+          "wdir": 210,
+          "wspd": 8
+        },
+        {
+          "text": "FM270300 22006KT P6SM BKN200",
+          "offset_h": 22,
+          "wdir": 220,
+          "wspd": 6
+        },
+        {
+          "text": "FM270500 VRB04KT P6SM FEW010 SCT200",
+          "offset_h": 24,
+          "wdir": "VRB",
+          "wspd": 4
+        }
+      ],
+      "metar_raw": "METAR KSAN 260451Z 30003KT 10SM FEW010 24/22 A2992 RMK AO2 SLP130 T02390222",
+      "metar_wdir": 300,
+      "metar_wspd": 3,
+      "metar_oat": 24,
+      "metar_qnh": 1013,
+      "hourly_oat": [
+        24,
+        23,
+        22,
+        22,
+        21,
+        21,
+        21,
+        20,
+        20,
+        21,
+        23,
+        24,
+        25,
+        27,
+        29,
+        30,
+        30,
+        29,
+        28,
+        27,
+        25,
+        23,
+        22,
+        21,
+        21
+      ]
+    },
+    "CGK": {
+      "icao": "WIII",
+      "issued": "2026-08-26T05:00:00.000Z",
+      "raw": "TAF WIII 260500Z 2606/2712 06015KT 8000 SCT020 BECMG 2614/2616 20005KT 5000 HZ",
+      "groups": [
+        {
+          "text": "TAF WIII 260500Z 2606/2712 06015KT 8000 SCT020",
+          "offset_h": 1,
+          "wdir": 60,
+          "wspd": 15
+        },
+        {
+          "text": "BECMG 2614/2616 20005KT 5000 HZ",
+          "offset_h": 9,
+          "wdir": 200,
+          "wspd": 5
+        }
+      ],
+      "metar_raw": "METAR WIII 260500Z 04012KT 360V080 8000 SCT020 33/23 Q1012 NOSIG",
+      "metar_wdir": 40,
+      "metar_wspd": 12,
+      "metar_oat": 33,
+      "metar_qnh": 1012,
+      "hourly_oat": [
+        34,
+        33,
+        32,
+        32,
+        31,
+        30,
+        28,
+        28,
+        26,
+        26,
+        26,
+        26,
+        26,
+        26,
+        25,
+        25,
+        25,
+        25,
+        24,
+        26,
+        28,
+        30,
+        31,
+        33,
+        34
+      ]
+    },
+    "HKG": {
+      "icao": "VHHH",
+      "issued": "2026-08-26T05:00:00.000Z",
+      "raw": "TAF VHHH 260500Z 2606/2712 16010KT 9999 FEW010 SCT025 TX31/2606Z TX31/2706Z TN27/2622Z TEMPO 2606/2610 10015G25KT 2500 TSRA SHRA FEW010CB SCT020 TEMPO 2616/2622 3000 SHRA FEW010CB SCT020 BECMG 2622/2624 22010KT TEMPO 2622/2704 24020G30KT 2000 TSRA +SHRA FEW008CB SCT015",
+      "groups": [
+        {
+          "text": "TAF VHHH 260500Z 2606/2712 16010KT 9999 FEW010 SCT025 TX31/2606Z TX31/2706Z TN27/2622Z",
+          "offset_h": 1,
+          "wdir": 160,
+          "wspd": 10
+        },
+        {
+          "text": "TEMPO 2606/2610 10015G25KT 2500 TSRA SHRA FEW010CB SCT020",
+          "offset_h": 1,
+          "wdir": 100,
+          "wspd": 15
+        },
+        {
+          "text": "TEMPO 2616/2622 3000 SHRA FEW010CB SCT020",
+          "offset_h": 11,
+          "wdir": null,
+          "wspd": null
+        },
+        {
+          "text": "BECMG 2622/2624 22010KT",
+          "offset_h": 17,
+          "wdir": 220,
+          "wspd": 10
+        },
+        {
+          "text": "TEMPO 2622/2704 24020G30KT 2000 TSRA +SHRA FEW008CB SCT015",
+          "offset_h": 17,
+          "wdir": 240,
+          "wspd": 20
+        }
+      ],
+      "metar_raw": "METAR VHHH 260500Z 18011KT 150V230 9999 FEW010 SCT025 31/26 Q1003 NOSIG",
+      "metar_wdir": 180,
+      "metar_wspd": 11,
+      "metar_oat": 31,
+      "metar_qnh": 1003,
+      "hourly_oat": [
+        30,
+        29,
+        28,
+        29,
+        29,
+        29,
+        29,
+        28,
+        27,
+        27,
+        27,
+        27,
+        27,
+        27,
+        27,
+        27,
+        26,
+        27,
+        27,
+        27,
+        28,
+        28,
+        29,
+        30,
+        30
+      ]
+    },
+    "TPE": {
+      "icao": "RCTP",
+      "issued": "2026-08-26T05:00:00.000Z",
+      "raw": "TAF RCTP 260500Z 2606/2712 26010KT 9999 FEW015 BKN032 TEMPO 2606/2610 FEW010 BKN020 TEMPO 2611/2615 SCT005 BKN009 BKN025 BECMG 2617/2619 24013KT TEMPO 2700/2706 24015G25KT TEMPO 2706/2712 23016G28KT",
+      "groups": [
+        {
+          "text": "TAF RCTP 260500Z 2606/2712 26010KT 9999 FEW015 BKN032",
+          "offset_h": 1,
+          "wdir": 260,
+          "wspd": 10
+        },
+        {
+          "text": "TEMPO 2606/2610 FEW010 BKN020",
+          "offset_h": 1,
+          "wdir": null,
+          "wspd": null
+        },
+        {
+          "text": "TEMPO 2611/2615 SCT005 BKN009 BKN025",
+          "offset_h": 6,
+          "wdir": null,
+          "wspd": null
+        },
+        {
+          "text": "BECMG 2617/2619 24013KT",
+          "offset_h": 12,
+          "wdir": 240,
+          "wspd": 13
+        },
+        {
+          "text": "TEMPO 2700/2706 24015G25KT",
+          "offset_h": 19,
+          "wdir": 240,
+          "wspd": 15
+        },
+        {
+          "text": "TEMPO 2706/2712 23016G28KT",
+          "offset_h": 25,
+          "wdir": 230,
+          "wspd": 16
+        }
+      ],
+      "metar_raw": "METAR RCTP 260500Z 31009KT 280V350 9999 FEW015 SCT100 BKN200 31/27 Q1005 NOSIG RMK A2970",
+      "metar_wdir": 310,
+      "metar_wspd": 9,
+      "metar_oat": 31,
+      "metar_qnh": 1005,
+      "hourly_oat": [
+        29,
+        29,
+        28,
+        28,
+        28,
+        27,
+        26,
+        27,
+        27,
+        26,
+        26,
+        27,
+        27,
+        27,
+        27,
+        27,
+        27,
+        27,
+        27,
+        28,
+        28,
+        29,
+        30,
+        30,
+        30
+      ]
+    },
+    "GMP": {
+      "icao": "RKSS",
+      "issued": "2026-08-26T05:00:00.000Z",
+      "raw": "TAF RKSS 260500Z 2606/2712 28006KT 9999 SCT030 TN24/2621Z TX32/2706Z BECMG 2613/2615 06005KT 6000 TEMPO 2618/2703 34005KT BECMG 2704/2706 27006KT 9999",
+      "groups": [
+        {
+          "text": "TAF RKSS 260500Z 2606/2712 28006KT 9999 SCT030 TN24/2621Z TX32/2706Z",
+          "offset_h": 1,
+          "wdir": 280,
+          "wspd": 6
+        },
+        {
+          "text": "BECMG 2613/2615 06005KT 6000",
+          "offset_h": 8,
+          "wdir": 60,
+          "wspd": 5
+        },
+        {
+          "text": "TEMPO 2618/2703 34005KT",
+          "offset_h": 13,
+          "wdir": 340,
+          "wspd": 5
+        },
+        {
+          "text": "BECMG 2704/2706 27006KT 9999",
+          "offset_h": 23,
+          "wdir": 270,
+          "wspd": 6
+        }
+      ],
+      "metar_raw": "METAR RKSS 260500Z 31007KT 270V340 9999 SCT030 BKN200 30/25 Q1008 NOSIG",
+      "metar_wdir": 310,
+      "metar_wspd": 7,
+      "metar_oat": 30,
+      "metar_qnh": 1008,
+      "hourly_oat": [
+        29,
+        29,
+        29,
+        28,
+        28,
+        27,
+        26,
+        25,
+        25,
+        25,
+        24,
+        24,
+        24,
+        23,
+        23,
+        23,
+        23,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        29
+      ]
+    },
+    "TSA": {
+      "icao": "RCSS",
+      "issued": "2026-08-26T05:00:00.000Z",
+      "raw": "TAF RCSS 260500Z 2606/2706 29007KT 9999 FEW015 BKN032 TEMPO 2606/2610 27010G20KT FEW008 BKN018 TEMPO 2610/2614 27008G18KT FEW010 BKN020 TEMPO 2700/2706 26012G22KT",
+      "groups": [
+        {
+          "text": "TAF RCSS 260500Z 2606/2706 29007KT 9999 FEW015 BKN032",
+          "offset_h": 1,
+          "wdir": 290,
+          "wspd": 7
+        },
+        {
+          "text": "TEMPO 2606/2610 27010G20KT FEW008 BKN018",
+          "offset_h": 1,
+          "wdir": 270,
+          "wspd": 10
+        },
+        {
+          "text": "TEMPO 2610/2614 27008G18KT FEW010 BKN020",
+          "offset_h": 5,
+          "wdir": 270,
+          "wspd": 8
+        },
+        {
+          "text": "TEMPO 2700/2706 26012G22KT",
+          "offset_h": 19,
+          "wdir": 260,
+          "wspd": 12
+        }
+      ],
+      "metar_raw": "METAR RCSS 260500Z 30010KT 270V340 9999 SCT025 BKN130 BKN200 32/24 Q1004 NOSIG RMK 31012KT/R10 A2967",
+      "metar_wdir": 300,
+      "metar_wspd": 10,
+      "metar_oat": 32,
+      "metar_qnh": 1004,
+      "hourly_oat": [
+        30,
+        29,
+        28,
+        29,
+        28,
+        28,
+        27,
+        26,
+        26,
+        26,
+        26,
+        26,
+        26,
+        26,
+        26,
+        26,
+        26,
+        26,
+        27,
+        28,
+        30,
+        31,
+        32,
+        32,
+        32
+      ]
+    },
     "LAX": {
       "icao": "KLAX",
       "issued": "2026-08-26T03:34:00.000Z",
@@ -8,36 +455,35 @@
       "groups": [
         {
           "text": "TAF KLAX 260334Z 2604/2706 22006KT P6SM FEW150",
-          "offset_h": 0,
+          "offset_h": -1,
           "wdir": 220,
           "wspd": 6
         },
         {
           "text": "FM260800 VRB03KT P6SM SKC",
-          "offset_h": 4,
+          "offset_h": 3,
           "wdir": "VRB",
           "wspd": 3
         },
         {
           "text": "FM261900 26012KT P6SM SKC",
-          "offset_h": 15,
+          "offset_h": 14,
           "wdir": 260,
           "wspd": 12
         },
         {
           "text": "FM270300 24006KT P6SM SCT250",
-          "offset_h": 23,
+          "offset_h": 22,
           "wdir": 240,
           "wspd": 6
         }
       ],
-      "metar_raw": "METAR KLAX 260353Z 22005KT 10SM FEW130 23/19 A2989 RMK AO2 SLP118 T02330189 $",
-      "metar_wdir": 220,
-      "metar_wspd": 5,
+      "metar_raw": "METAR KLAX 260453Z 25004KT 10SM CLR 23/18 A2990 RMK AO2 SLP124 T02330183 $",
+      "metar_wdir": 250,
+      "metar_wspd": 4,
       "metar_oat": 23,
-      "metar_qnh": 1012,
+      "metar_qnh": 1013,
       "hourly_oat": [
-        22,
         21,
         21,
         20,
@@ -45,15 +491,15 @@
         19,
         19,
         19,
-        18,
+        19,
         18,
         19,
         23,
-        26,
-        28,
-        29,
+        27,
         30,
-        31,
+        30,
+        30,
+        30,
         29,
         28,
         28,
@@ -61,7 +507,8 @@
         26,
         24,
         22,
-        22
+        22,
+        21
       ]
     },
     "CAN": {
@@ -71,48 +518,47 @@
       "groups": [
         {
           "text": "TAF ZGGG 260306Z 2606/2712 13004MPS 8000 BKN033 TX30/2607Z TX32/2707Z TN25/2622Z",
-          "offset_h": 2,
+          "offset_h": 1,
           "wdir": null,
           "wspd": null
         },
         {
           "text": "BECMG 2606/2607 TSRA SCT026CB BKN033",
-          "offset_h": 2,
+          "offset_h": 1,
           "wdir": null,
           "wspd": null
         },
         {
           "text": "BECMG 2608/2609 NSW BKN033",
-          "offset_h": 4,
+          "offset_h": 3,
           "wdir": null,
           "wspd": null
         },
         {
           "text": "TEMPO 2612/2616 2500 +TSRA SCT026CB BKN033",
-          "offset_h": 8,
+          "offset_h": 7,
           "wdir": null,
           "wspd": null
         },
         {
           "text": "TEMPO 2620/2624 TSRA SCT026CB BKN033",
-          "offset_h": 16,
+          "offset_h": 15,
           "wdir": null,
           "wspd": null
         },
         {
           "text": "TEMPO 2707/2711 TSRA SCT026CB BKN033",
-          "offset_h": 27,
+          "offset_h": 26,
           "wdir": null,
           "wspd": null
         }
       ],
-      "metar_raw": "METAR ZGGG 260400Z 05003MPS 010V070 9999 BKN033 29/27 Q1003 NOSIG",
+      "metar_raw": "METAR ZGGG 260500Z 06004MPS 9999 FEW013 BKN033 29/27 Q1003 NOSIG",
       "metar_wdir": null,
       "metar_wspd": null,
       "metar_oat": 29,
       "metar_qnh": 1003,
       "hourly_oat": [
-        31,
         30,
         31,
         30,
@@ -136,6 +582,7 @@
         27,
         27,
         28,
+        30,
         30
       ]
     },
@@ -146,18 +593,18 @@
       "groups": [
         {
           "text": "TAF ZYTL 260305Z 2606/2706 09004MPS 5000 BR SCT033 TX28/2706Z TN22/2621Z",
-          "offset_h": 2,
+          "offset_h": 1,
           "wdir": null,
           "wspd": null
         },
         {
           "text": "TEMPO 2606/2609 2800 -SHRA BR SCT010 BKN023 FEW033CB",
-          "offset_h": 2,
+          "offset_h": 1,
           "wdir": null,
           "wspd": null
         }
       ],
-      "metar_raw": "METAR ZYTL 260400Z 04002MPS 360V100 9999 BKN040 25/21 Q1008 NOSIG",
+      "metar_raw": "METAR ZYTL 260500Z 10004MPS 070V130 9999 FEW013 BKN026 25/22 Q1008 NOSIG",
       "metar_wdir": null,
       "metar_wspd": null,
       "metar_oat": 25,
@@ -166,7 +613,6 @@
         25,
         25,
         25,
-        25,
         24,
         24,
         24,
@@ -187,7 +633,8 @@
         25,
         26,
         26,
-        26
+        26,
+        27
       ]
     },
     "SHA": {
@@ -197,20 +644,19 @@
       "groups": [
         {
           "text": "TAF ZSSS 260304Z 2606/2712 06004MPS 6000 BKN020 TX34/2606Z TX33/2706Z TN28/2621Z",
-          "offset_h": 2,
+          "offset_h": 1,
           "wdir": null,
           "wspd": null
         }
       ],
-      "metar_raw": "METAR ZSSS 260400Z 04004MPS 360V080 9999 SCT033 34/25 Q1006 NOSIG",
+      "metar_raw": "METAR ZSSS 260500Z 07006MPS 9999 BKN040 33/24 Q1006 NOSIG",
       "metar_wdir": null,
       "metar_wspd": null,
-      "metar_oat": 34,
+      "metar_oat": 33,
       "metar_qnh": 1006,
       "hourly_oat": [
         33,
         33,
-        33,
         32,
         32,
         31,
@@ -231,6 +677,7 @@
         29,
         30,
         31,
+        32,
         32,
         32
       ]
@@ -242,40 +689,40 @@
       "groups": [
         {
           "text": "TAF ZSPD 260303Z 2606/2712 06006MPS 6000 BKN020 TX34/2606Z TX33/2706Z TN27/2621Z",
-          "offset_h": 2,
+          "offset_h": 1,
           "wdir": null,
           "wspd": null
         }
       ],
-      "metar_raw": "METAR ZSPD 260400Z 06006MPS 020V100 9999 FEW026 32/26 Q1007 NOSIG",
+      "metar_raw": "METAR ZSPD 260500Z 03006MPS 360V080 9999 FEW026 32/26 Q1006 NOSIG",
       "metar_wdir": null,
       "metar_wspd": null,
       "metar_oat": 32,
-      "metar_qnh": 1007,
+      "metar_qnh": 1006,
       "hourly_oat": [
         31,
         31,
+        30,
+        30,
+        30,
+        29,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        29,
+        30,
+        30,
         31,
-        30,
-        30,
-        30,
-        29,
-        28,
-        28,
-        28,
-        28,
-        28,
-        28,
-        28,
-        28,
-        28,
-        28,
-        28,
-        28,
-        28,
-        29,
-        30,
-        30,
         31,
         31
       ]
@@ -287,18 +734,17 @@
       "groups": [
         {
           "text": "TAF ZBAA 260301Z 2606/2712 34004MPS 3500 BR NSC TX27/2607Z TX30/2706Z TN20/2621Z",
-          "offset_h": 2,
+          "offset_h": 1,
           "wdir": null,
           "wspd": null
         }
       ],
-      "metar_raw": "METAR ZBAA 260400Z 36003MPS 320V050 CAVOK 28/20 Q1010 NOSIG",
+      "metar_raw": "METAR ZBAA 260500Z VRB01MPS CAVOK 28/21 Q1010 NOSIG",
       "metar_wdir": null,
       "metar_wspd": null,
       "metar_oat": 28,
       "metar_qnh": 1010,
       "hourly_oat": [
-        24,
         25,
         25,
         25,
@@ -322,220 +768,8 @@
         24,
         25,
         26,
+        28,
         28
-      ]
-    },
-    "HNL": {
-      "icao": "PHNL",
-      "issued": "2026-08-26T02:56:00.000Z",
-      "raw": "TAF PHNL 260256Z 2603/2706 06015G25KT P6SM FEW025 SCT040 FM260600 06012KT P6SM FEW025 FEW045 FM262000 06015G25KT P6SM FEW025 SCT045 FM270400 06012KT P6SM FEW025 FEW045",
-      "groups": [
-        {
-          "text": "TAF PHNL 260256Z 2603/2706 06015G25KT P6SM FEW025 SCT040",
-          "offset_h": -1,
-          "wdir": 60,
-          "wspd": 15
-        },
-        {
-          "text": "FM260600 06012KT P6SM FEW025 FEW045",
-          "offset_h": 2,
-          "wdir": 60,
-          "wspd": 12
-        },
-        {
-          "text": "FM262000 06015G25KT P6SM FEW025 SCT045",
-          "offset_h": 16,
-          "wdir": 60,
-          "wspd": 15
-        },
-        {
-          "text": "FM270400 06012KT P6SM FEW025 FEW045",
-          "offset_h": 24,
-          "wdir": 60,
-          "wspd": 12
-        }
-      ],
-      "metar_raw": "METAR PHNL 260353Z 06013G26KT 10SM FEW025 FEW040 29/20 A2995 RMK AO2 PK WND 06027/0342 SLP142 T02890200 $",
-      "metar_wdir": 60,
-      "metar_wspd": 13,
-      "metar_oat": 29,
-      "metar_qnh": 1014,
-      "hourly_oat": [
-        27,
-        26,
-        25,
-        25,
-        25,
-        25,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        24,
-        25,
-        27,
-        28,
-        29,
-        29,
-        29,
-        29,
-        29,
-        28,
-        27,
-        26
-      ]
-    },
-    "SAN": {
-      "icao": "KSAN",
-      "issued": "2026-08-26T02:45:00.000Z",
-      "raw": "TAF KSAN 260245Z 2603/2706 27007KT P6SM FEW010 FEW250 FM260500 VRB04KT P6SM SCT010 TEMPO 2611/2615 5SM BR BKN007 FM261900 21008KT P6SM SCT200 FM270300 VRB04KT P6SM BKN200",
-      "groups": [
-        {
-          "text": "TAF KSAN 260245Z 2603/2706 27007KT P6SM FEW010 FEW250",
-          "offset_h": -1,
-          "wdir": 270,
-          "wspd": 7
-        },
-        {
-          "text": "FM260500 VRB04KT P6SM SCT010",
-          "offset_h": 1,
-          "wdir": "VRB",
-          "wspd": 4
-        },
-        {
-          "text": "TEMPO 2611/2615 5SM BR BKN007",
-          "offset_h": 7,
-          "wdir": null,
-          "wspd": null
-        },
-        {
-          "text": "FM261900 21008KT P6SM SCT200",
-          "offset_h": 15,
-          "wdir": 210,
-          "wspd": 8
-        },
-        {
-          "text": "FM270300 VRB04KT P6SM BKN200",
-          "offset_h": 23,
-          "wdir": "VRB",
-          "wspd": 4
-        }
-      ],
-      "metar_raw": "METAR KSAN 260351Z 31003KT 10SM FEW010 24/22 A2991 RMK AO2 SLP129 T02440222",
-      "metar_wdir": 310,
-      "metar_wspd": 3,
-      "metar_oat": 24,
-      "metar_qnh": 1013,
-      "hourly_oat": [
-        23,
-        23,
-        22,
-        22,
-        22,
-        21,
-        21,
-        21,
-        20,
-        20,
-        21,
-        22,
-        24,
-        26,
-        28,
-        29,
-        29,
-        28,
-        29,
-        28,
-        27,
-        25,
-        23,
-        22,
-        21
-      ]
-    },
-    "HKG": {
-      "icao": "VHHH",
-      "issued": "2026-08-26T02:00:00.000Z",
-      "raw": "TAF VHHH 260200Z 2603/2709 16010KT 9999 FEW010 SCT025 TX31/2606Z TX31/2706Z TN27/2622Z TEMPO 2603/2606 14020G30KT 2500 TSRA +SHRA FEW008CB SCT015 TEMPO 2606/2612 3500 SHRA FEW010CB SCT020 TEMPO 2616/2622 3000 SHRA FEW010CB SCT020 BECMG 2622/2624 22010KT PROB30 TEMPO 2622/2704 24015G25KT 2500 TSRA +SHRA FEW008CB SCT015",
-      "groups": [
-        {
-          "text": "TAF VHHH 260200Z 2603/2709 16010KT 9999 FEW010 SCT025 TX31/2606Z TX31/2706Z TN27/2622Z",
-          "offset_h": -1,
-          "wdir": 160,
-          "wspd": 10
-        },
-        {
-          "text": "TEMPO 2603/2606 14020G30KT 2500 TSRA +SHRA FEW008CB SCT015",
-          "offset_h": -1,
-          "wdir": 140,
-          "wspd": 20
-        },
-        {
-          "text": "TEMPO 2606/2612 3500 SHRA FEW010CB SCT020",
-          "offset_h": 2,
-          "wdir": null,
-          "wspd": null
-        },
-        {
-          "text": "TEMPO 2616/2622 3000 SHRA FEW010CB SCT020",
-          "offset_h": 12,
-          "wdir": null,
-          "wspd": null
-        },
-        {
-          "text": "BECMG 2622/2624 22010KT",
-          "offset_h": 18,
-          "wdir": 220,
-          "wspd": 10
-        },
-        {
-          "text": "PROB30",
-          "offset_h": 0,
-          "wdir": null,
-          "wspd": null
-        },
-        {
-          "text": "TEMPO 2622/2704 24015G25KT 2500 TSRA +SHRA FEW008CB SCT015",
-          "offset_h": 18,
-          "wdir": 240,
-          "wspd": 15
-        }
-      ],
-      "metar_raw": "METAR VHHH 260400Z 10007KT 080V170 9999 FEW008 SCT025 29/26 Q1003 NOSIG",
-      "metar_wdir": 100,
-      "metar_wspd": 7,
-      "metar_oat": 29,
-      "metar_qnh": 1003,
-      "hourly_oat": [
-        30,
-        30,
-        29,
-        28,
-        29,
-        29,
-        29,
-        29,
-        28,
-        27,
-        27,
-        27,
-        27,
-        27,
-        27,
-        27,
-        27,
-        26,
-        27,
-        27,
-        27,
-        28,
-        28,
-        29,
-        30
       ]
     },
     "OKA": {
@@ -545,45 +779,44 @@
       "groups": [
         {
           "text": "TAF AMD ROAH 260139Z 2601/2706 21030KT 6000 -SHRA FEW008 BKN012",
-          "offset_h": -3,
+          "offset_h": -4,
           "wdir": 210,
           "wspd": 30
         },
         {
           "text": "TEMPO 2601/2607 22035G45KT 3000 +TSRA BR FEW005 BKN008 SCT020CB",
-          "offset_h": -3,
+          "offset_h": -4,
           "wdir": 220,
           "wspd": 35
         },
         {
           "text": "TEMPO 2607/2609 20030G40KT 4000 SHRA BR FEW005 BKN008 FEW020CB",
-          "offset_h": 3,
+          "offset_h": 2,
           "wdir": 200,
           "wspd": 30
         },
         {
           "text": "TEMPO 2609/2612 19025G35KT",
-          "offset_h": 5,
+          "offset_h": 4,
           "wdir": 190,
           "wspd": 25
         },
         {
           "text": "BECMG 2612/2615 18018KT",
-          "offset_h": 8,
+          "offset_h": 7,
           "wdir": 180,
           "wspd": 18
         }
       ],
-      "metar_raw": "METAR ROAH 260400Z 21028KT 8000 -SHRA FEW014 BKN022 29/27 Q0997",
+      "metar_raw": "METAR ROAH 260500Z 21031KT 8000 -SHRA FEW015 BKN020 29/27 Q0997",
       "metar_wdir": 210,
-      "metar_wspd": 28,
+      "metar_wspd": 31,
       "metar_oat": 29,
       "metar_qnh": 997,
       "hourly_oat": [
         28,
         28,
         28,
-        28,
         27,
         27,
         27,
@@ -602,6 +835,7 @@
         28,
         28,
         28,
+        29,
         29,
         29,
         29
@@ -614,123 +848,48 @@
       "groups": [
         {
           "text": "TAF AMD WSSS 260130Z 2601/2706 15008KT 9999 FEW015 SCT020",
-          "offset_h": -3,
+          "offset_h": -4,
           "wdir": 150,
           "wspd": 8
         },
         {
           "text": "TEMPO 2603/2607 27015G25KT 3000 TSRA FEW012CB BKN015",
-          "offset_h": -1,
+          "offset_h": -2,
           "wdir": 270,
           "wspd": 15
         }
       ],
-      "metar_raw": "METAR WSSS 260400Z 17007KT 130V210 9999 VCSH FEW017CB FEW018TCU SCT020 31/25 Q1013 TEMPO TL0530 27015G25KT 2000 +TSRA",
-      "metar_wdir": 170,
+      "metar_raw": "METAR WSSS 260500Z 25007KT 190V310 9000 -TSRA FEW017CB FEW018TCU SCT020 29/23 Q1013 BECMG FM0545 TL0600 NSW",
+      "metar_wdir": 250,
       "metar_wspd": 7,
-      "metar_oat": 31,
+      "metar_oat": 29,
       "metar_qnh": 1013,
       "hourly_oat": [
         31,
         31,
+        30,
+        30,
+        30,
+        30,
+        29,
+        29,
+        29,
+        29,
+        29,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        29,
+        30,
+        30,
         31,
-        30,
-        30,
-        30,
-        30,
-        29,
-        29,
-        29,
-        29,
-        29,
-        28,
-        28,
-        28,
-        28,
-        28,
-        28,
-        28,
-        28,
-        28,
-        29,
-        30,
-        30,
-        31
-      ]
-    },
-    "NRT": {
-      "icao": "RJAA",
-      "issued": "2026-08-25T23:05:00.000Z",
-      "raw": "TAF RJAA 252305Z 2600/2706 23004KT 9999 FEW020 SCT030 BECMG 2602/2604 14010KT TEMPO 2602/2608 -TSRA FEW015 BKN030 FEW030CB TEMPO 2615/2700 4000 -TSRA BR FEW001 BKN003 FEW012CB BECMG 2618/2621 25004KT TEMPO 2703/2706 -TSRA FEW020 BKN030 FEW030CB",
-      "groups": [
-        {
-          "text": "TAF RJAA 252305Z 2600/2706 23004KT 9999 FEW020 SCT030",
-          "offset_h": -4,
-          "wdir": 230,
-          "wspd": 4
-        },
-        {
-          "text": "BECMG 2602/2604 14010KT",
-          "offset_h": -2,
-          "wdir": 140,
-          "wspd": 10
-        },
-        {
-          "text": "TEMPO 2602/2608 -TSRA FEW015 BKN030 FEW030CB",
-          "offset_h": -2,
-          "wdir": null,
-          "wspd": null
-        },
-        {
-          "text": "TEMPO 2615/2700 4000 -TSRA BR FEW001 BKN003 FEW012CB",
-          "offset_h": 11,
-          "wdir": null,
-          "wspd": null
-        },
-        {
-          "text": "BECMG 2618/2621 25004KT",
-          "offset_h": 14,
-          "wdir": 250,
-          "wspd": 4
-        },
-        {
-          "text": "TEMPO 2703/2706 -TSRA FEW020 BKN030 FEW030CB",
-          "offset_h": 23,
-          "wdir": null,
-          "wspd": null
-        }
-      ],
-      "metar_raw": "METAR RJAA 260400Z 13009KT 090V160 9999 FEW038 BKN/// 34/26 Q1008 TEMPO -TSRA",
-      "metar_wdir": 130,
-      "metar_wspd": 9,
-      "metar_oat": 34,
-      "metar_qnh": 1008,
-      "hourly_oat": [
-        33,
-        33,
-        33,
-        32,
-        32,
-        31,
-        30,
-        28,
-        28,
-        27,
-        27,
-        26,
-        26,
-        26,
-        26,
-        26,
-        25,
-        26,
-        26,
-        26,
-        26,
-        27,
-        26,
-        24,
-        25
+        32
       ]
     },
     "KIX": {
@@ -740,15 +899,234 @@
       "groups": [
         {
           "text": "TAF RJBB 252305Z 2600/2706 23014KT 9999 FEW020 SCT045",
-          "offset_h": -4,
+          "offset_h": -5,
           "wdir": 230,
           "wspd": 14
         }
       ],
-      "metar_raw": "METAR RJBB 260400Z 22016KT 9999 FEW015 BKN/// 34/25 Q1009 NOSIG",
+      "metar_raw": "METAR RJBB 260500Z 22015KT 9999 FEW015 SCT/// 34/25 Q1009 NOSIG",
       "metar_wdir": 220,
-      "metar_wspd": 16,
+      "metar_wspd": 15,
       "metar_oat": 34,
+      "metar_qnh": 1009,
+      "hourly_oat": [
+        30,
+        30,
+        30,
+        30,
+        30,
+        30,
+        29,
+        29,
+        29,
+        29,
+        29,
+        29,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        29,
+        29,
+        30,
+        30,
+        30,
+        30,
+        30
+      ]
+    },
+    "NRT": {
+      "icao": "RJAA",
+      "issued": "2026-08-25T23:05:00.000Z",
+      "raw": "TAF RJAA 252305Z 2600/2706 23004KT 9999 FEW020 SCT030 BECMG 2602/2604 14010KT TEMPO 2602/2608 -TSRA FEW015 BKN030 FEW030CB TEMPO 2615/2700 4000 -TSRA BR FEW001 BKN003 FEW012CB BECMG 2618/2621 25004KT TEMPO 2703/2706 -TSRA FEW020 BKN030 FEW030CB",
+      "groups": [
+        {
+          "text": "TAF RJAA 252305Z 2600/2706 23004KT 9999 FEW020 SCT030",
+          "offset_h": -5,
+          "wdir": 230,
+          "wspd": 4
+        },
+        {
+          "text": "BECMG 2602/2604 14010KT",
+          "offset_h": -3,
+          "wdir": 140,
+          "wspd": 10
+        },
+        {
+          "text": "TEMPO 2602/2608 -TSRA FEW015 BKN030 FEW030CB",
+          "offset_h": -3,
+          "wdir": null,
+          "wspd": null
+        },
+        {
+          "text": "TEMPO 2615/2700 4000 -TSRA BR FEW001 BKN003 FEW012CB",
+          "offset_h": 10,
+          "wdir": null,
+          "wspd": null
+        },
+        {
+          "text": "BECMG 2618/2621 25004KT",
+          "offset_h": 13,
+          "wdir": 250,
+          "wspd": 4
+        },
+        {
+          "text": "TEMPO 2703/2706 -TSRA FEW020 BKN030 FEW030CB",
+          "offset_h": 22,
+          "wdir": null,
+          "wspd": null
+        }
+      ],
+      "metar_raw": "METAR RJAA 260500Z 14008KT 9999 FEW035 BKN/// 33/26 Q1008 TEMPO -TSRA",
+      "metar_wdir": 140,
+      "metar_wspd": 8,
+      "metar_oat": 33,
+      "metar_qnh": 1008,
+      "hourly_oat": [
+        33,
+        32,
+        33,
+        32,
+        31,
+        30,
+        29,
+        28,
+        27,
+        27,
+        27,
+        26,
+        26,
+        26,
+        26,
+        26,
+        26,
+        26,
+        26,
+        27,
+        27,
+        27,
+        27,
+        27,
+        28
+      ]
+    },
+    "FUK": {
+      "icao": "RJFF",
+      "issued": "2026-08-25T23:05:00.000Z",
+      "raw": "TAF RJFF 252305Z 2600/2706 15008KT 9999 FEW030 SCT040 BECMG 2603/2605 25006KT BECMG 2607/2609 14008KT TEMPO 2608/2610 -TSRA BKN030 FEW030CB BECMG 2703/2706 35008KT TEMPO 2703/2706 -TSRA BKN030 FEW030CB",
+      "groups": [
+        {
+          "text": "TAF RJFF 252305Z 2600/2706 15008KT 9999 FEW030 SCT040",
+          "offset_h": -5,
+          "wdir": 150,
+          "wspd": 8
+        },
+        {
+          "text": "BECMG 2603/2605 25006KT",
+          "offset_h": -2,
+          "wdir": 250,
+          "wspd": 6
+        },
+        {
+          "text": "BECMG 2607/2609 14008KT",
+          "offset_h": 2,
+          "wdir": 140,
+          "wspd": 8
+        },
+        {
+          "text": "TEMPO 2608/2610 -TSRA BKN030 FEW030CB",
+          "offset_h": 3,
+          "wdir": null,
+          "wspd": null
+        },
+        {
+          "text": "BECMG 2703/2706 35008KT",
+          "offset_h": 22,
+          "wdir": 350,
+          "wspd": 8
+        },
+        {
+          "text": "TEMPO 2703/2706 -TSRA BKN030 FEW030CB",
+          "offset_h": 22,
+          "wdir": null,
+          "wspd": null
+        }
+      ],
+      "metar_raw": "METAR RJFF 260500Z 30008KT 250V350 9999 FEW035 BKN060 BKN/// 37/24 Q1005 NOSIG",
+      "metar_wdir": 300,
+      "metar_wspd": 8,
+      "metar_oat": 37,
+      "metar_qnh": 1005,
+      "hourly_oat": [
+        35,
+        34,
+        33,
+        33,
+        32,
+        31,
+        30,
+        30,
+        30,
+        29,
+        29,
+        29,
+        28,
+        28,
+        27,
+        27,
+        27,
+        27,
+        29,
+        30,
+        32,
+        33,
+        33,
+        33,
+        32
+      ]
+    },
+    "NGO": {
+      "icao": "RJGG",
+      "issued": "2026-08-25T23:05:00.000Z",
+      "raw": "TAF RJGG 252305Z 2600/2706 28006KT 9999 FEW030 BECMG 2601/2603 19008KT TEMPO 2615/2618 -TSRA FEW015 SCT020 FEW020CB BKN030 BECMG 2618/2621 36010KT TEMPO 2618/2700 4000 -TSRA BR FEW012 BKN020 FEW020CB",
+      "groups": [
+        {
+          "text": "TAF RJGG 252305Z 2600/2706 28006KT 9999 FEW030",
+          "offset_h": -5,
+          "wdir": 280,
+          "wspd": 6
+        },
+        {
+          "text": "BECMG 2601/2603 19008KT",
+          "offset_h": -4,
+          "wdir": 190,
+          "wspd": 8
+        },
+        {
+          "text": "TEMPO 2615/2618 -TSRA FEW015 SCT020 FEW020CB BKN030",
+          "offset_h": 10,
+          "wdir": null,
+          "wspd": null
+        },
+        {
+          "text": "BECMG 2618/2621 36010KT",
+          "offset_h": 13,
+          "wdir": 360,
+          "wspd": 10
+        },
+        {
+          "text": "TEMPO 2618/2700 4000 -TSRA BR FEW012 BKN020 FEW020CB",
+          "offset_h": 13,
+          "wdir": null,
+          "wspd": null
+        }
+      ],
+      "metar_raw": "METAR RJGG 260500Z 18009KT 9999 FEW020 FEW025CB BKN150 33/25 Q1009 NOSIG",
+      "metar_wdir": 180,
+      "metar_wspd": 9,
+      "metar_oat": 33,
       "metar_qnh": 1009,
       "hourly_oat": [
         30,
@@ -765,16 +1143,85 @@
         29,
         29,
         29,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        28,
+        29,
+        29,
+        28,
+        29
+      ]
+    },
+    "ITM": {
+      "icao": "RJOO",
+      "issued": "2026-08-25T23:05:00.000Z",
+      "raw": "TAF RJOO 252305Z 2600/2706 24008KT 9999 FEW030 TEMPO 2604/2606 TS FEW020CB BKN030 BECMG 2615/2618 18004KT BECMG 2703/2706 24010KT TEMPO 2703/2706 TS FEW020CB BKN030",
+      "groups": [
+        {
+          "text": "TAF RJOO 252305Z 2600/2706 24008KT 9999 FEW030",
+          "offset_h": -5,
+          "wdir": 240,
+          "wspd": 8
+        },
+        {
+          "text": "TEMPO 2604/2606 TS FEW020CB BKN030",
+          "offset_h": -1,
+          "wdir": null,
+          "wspd": null
+        },
+        {
+          "text": "BECMG 2615/2618 18004KT",
+          "offset_h": 10,
+          "wdir": 180,
+          "wspd": 4
+        },
+        {
+          "text": "BECMG 2703/2706 24010KT",
+          "offset_h": 22,
+          "wdir": 240,
+          "wspd": 10
+        },
+        {
+          "text": "TEMPO 2703/2706 TS FEW020CB BKN030",
+          "offset_h": 22,
+          "wdir": null,
+          "wspd": null
+        }
+      ],
+      "metar_raw": "METAR RJOO 260500Z 26009G19KT 180V300 9999 FEW025CB SCT/// 35/23 Q1009",
+      "metar_wdir": 260,
+      "metar_wspd": 9,
+      "metar_oat": 35,
+      "metar_qnh": 1009,
+      "hourly_oat": [
+        32,
+        32,
+        31,
+        30,
+        30,
+        29,
         29,
         28,
         28,
         28,
         28,
+        28,
+        28,
+        27,
+        27,
+        27,
+        27,
+        28,
         29,
-        29,
+        28,
+        28,
         30,
         30,
-        30,
+        31,
         30
       ]
     },
@@ -785,197 +1232,50 @@
       "groups": [
         {
           "text": "TAF RJTT 252305Z 2600/2706 18014KT 9999 FEW030",
-          "offset_h": -4,
+          "offset_h": -5,
           "wdir": 180,
           "wspd": 14
         },
         {
           "text": "TEMPO 2615/2618 -TSRA FEW008 BKN015 FEW025CB",
-          "offset_h": 11,
+          "offset_h": 10,
           "wdir": null,
           "wspd": null
         },
         {
           "text": "BECMG 2615/2618 32006KT",
-          "offset_h": 11,
+          "offset_h": 10,
           "wdir": 320,
           "wspd": 6
         },
         {
           "text": "TEMPO 2618/2700 4000 TSRA BR FEW005 BKN008 FEW025CB",
-          "offset_h": 14,
+          "offset_h": 13,
           "wdir": null,
           "wspd": null
         },
         {
           "text": "BECMG 2621/2700 20006KT",
-          "offset_h": 17,
+          "offset_h": 16,
           "wdir": 200,
           "wspd": 6
         },
         {
           "text": "BECMG 2703/2706 35004KT",
-          "offset_h": 23,
+          "offset_h": 22,
           "wdir": 350,
           "wspd": 4
         }
       ],
-      "metar_raw": "METAR RJTT 260400Z 19015KT 9999 FEW030 BKN/// 33/24 Q1008 NOSIG",
-      "metar_wdir": 190,
-      "metar_wspd": 15,
-      "metar_oat": 33,
+      "metar_raw": "METAR RJTT 260500Z 18013KT 9999 FEW030 BKN/// 32/26 Q1008 NOSIG",
+      "metar_wdir": 180,
+      "metar_wspd": 13,
+      "metar_oat": 32,
       "metar_qnh": 1008,
       "hourly_oat": [
         32,
-        32,
         31,
         31,
-        30,
-        30,
-        29,
-        29,
-        29,
-        28,
-        28,
-        28,
-        27,
-        27,
-        27,
-        27,
-        26,
-        26,
-        26,
-        27,
-        27,
-        27,
-        26,
-        26,
-        26
-      ]
-    },
-    "ITM": {
-      "icao": "RJOO",
-      "issued": "2026-08-25T23:05:00.000Z",
-      "raw": "TAF RJOO 252305Z 2600/2706 24008KT 9999 FEW030 TEMPO 2604/2606 TS FEW020CB BKN030 BECMG 2615/2618 18004KT BECMG 2703/2706 24010KT TEMPO 2703/2706 TS FEW020CB BKN030",
-      "groups": [
-        {
-          "text": "TAF RJOO 252305Z 2600/2706 24008KT 9999 FEW030",
-          "offset_h": -4,
-          "wdir": 240,
-          "wspd": 8
-        },
-        {
-          "text": "TEMPO 2604/2606 TS FEW020CB BKN030",
-          "offset_h": 0,
-          "wdir": null,
-          "wspd": null
-        },
-        {
-          "text": "BECMG 2615/2618 18004KT",
-          "offset_h": 11,
-          "wdir": 180,
-          "wspd": 4
-        },
-        {
-          "text": "BECMG 2703/2706 24010KT",
-          "offset_h": 23,
-          "wdir": 240,
-          "wspd": 10
-        },
-        {
-          "text": "TEMPO 2703/2706 TS FEW020CB BKN030",
-          "offset_h": 23,
-          "wdir": null,
-          "wspd": null
-        }
-      ],
-      "metar_raw": "METAR RJOO 260400Z 25009KT 210V290 9999 FEW030 BKN/// 34/25 Q1009",
-      "metar_wdir": 250,
-      "metar_wspd": 9,
-      "metar_oat": 34,
-      "metar_qnh": 1009,
-      "hourly_oat": [
-        31,
-        31,
-        32,
-        31,
-        31,
-        30,
-        29,
-        29,
-        28,
-        28,
-        28,
-        28,
-        28,
-        28,
-        28,
-        27,
-        27,
-        27,
-        28,
-        28,
-        28,
-        28,
-        30,
-        30,
-        31
-      ]
-    },
-    "FUK": {
-      "icao": "RJFF",
-      "issued": "2026-08-25T23:05:00.000Z",
-      "raw": "TAF RJFF 252305Z 2600/2706 15008KT 9999 FEW030 SCT040 BECMG 2603/2605 25006KT BECMG 2607/2609 14008KT TEMPO 2608/2610 -TSRA BKN030 FEW030CB BECMG 2703/2706 35008KT TEMPO 2703/2706 -TSRA BKN030 FEW030CB",
-      "groups": [
-        {
-          "text": "TAF RJFF 252305Z 2600/2706 15008KT 9999 FEW030 SCT040",
-          "offset_h": -4,
-          "wdir": 150,
-          "wspd": 8
-        },
-        {
-          "text": "BECMG 2603/2605 25006KT",
-          "offset_h": -1,
-          "wdir": 250,
-          "wspd": 6
-        },
-        {
-          "text": "BECMG 2607/2609 14008KT",
-          "offset_h": 3,
-          "wdir": 140,
-          "wspd": 8
-        },
-        {
-          "text": "TEMPO 2608/2610 -TSRA BKN030 FEW030CB",
-          "offset_h": 4,
-          "wdir": null,
-          "wspd": null
-        },
-        {
-          "text": "BECMG 2703/2706 35008KT",
-          "offset_h": 23,
-          "wdir": 350,
-          "wspd": 8
-        },
-        {
-          "text": "TEMPO 2703/2706 -TSRA BKN030 FEW030CB",
-          "offset_h": 23,
-          "wdir": null,
-          "wspd": null
-        }
-      ],
-      "metar_raw": "METAR RJFF 260400Z 17007KT 100V220 9999 FEW025 SCT060 38/23 Q1006 BECMG 01006KT",
-      "metar_wdir": 170,
-      "metar_wspd": 7,
-      "metar_oat": 38,
-      "metar_qnh": 1006,
-      "hourly_oat": [
-        35,
-        35,
-        34,
-        33,
-        33,
-        32,
         31,
         30,
         29,
@@ -984,86 +1284,20 @@
         28,
         28,
         28,
+        28,
         27,
         27,
         27,
-        26,
+        27,
+        27,
+        27,
         27,
         28,
-        30,
-        32,
-        33,
-        34,
-        33
-      ]
-    },
-    "NGO": {
-      "icao": "RJGG",
-      "issued": "2026-08-25T23:05:00.000Z",
-      "raw": "TAF RJGG 252305Z 2600/2706 28006KT 9999 FEW030 BECMG 2601/2603 19008KT TEMPO 2615/2618 -TSRA FEW015 SCT020 FEW020CB BKN030 BECMG 2618/2621 36010KT TEMPO 2618/2700 4000 -TSRA BR FEW012 BKN020 FEW020CB",
-      "groups": [
-        {
-          "text": "TAF RJGG 252305Z 2600/2706 28006KT 9999 FEW030",
-          "offset_h": -4,
-          "wdir": 280,
-          "wspd": 6
-        },
-        {
-          "text": "BECMG 2601/2603 19008KT",
-          "offset_h": -3,
-          "wdir": 190,
-          "wspd": 8
-        },
-        {
-          "text": "TEMPO 2615/2618 -TSRA FEW015 SCT020 FEW020CB BKN030",
-          "offset_h": 11,
-          "wdir": null,
-          "wspd": null
-        },
-        {
-          "text": "BECMG 2618/2621 36010KT",
-          "offset_h": 14,
-          "wdir": 360,
-          "wspd": 10
-        },
-        {
-          "text": "TEMPO 2618/2700 4000 -TSRA BR FEW012 BKN020 FEW020CB",
-          "offset_h": 14,
-          "wdir": null,
-          "wspd": null
-        }
-      ],
-      "metar_raw": "METAR RJGG 260400Z 21004KT 190V250 9999 FEW020 BKN/// 32/24 Q1009 NOSIG",
-      "metar_wdir": 210,
-      "metar_wspd": 4,
-      "metar_oat": 32,
-      "metar_qnh": 1009,
-      "hourly_oat": [
+        27,
+        27,
+        28,
         29,
-        30,
-        30,
-        30,
-        30,
-        30,
-        30,
-        29,
-        29,
-        29,
-        29,
-        29,
-        28,
-        28,
-        28,
-        28,
-        28,
-        28,
-        28,
-        28,
-        28,
-        28,
-        28,
-        28,
-        28
+        29
       ]
     },
     "CTS": {
@@ -1073,30 +1307,29 @@
       "groups": [
         {
           "text": "TAF RJCC 252305Z 2600/2706 34008KT 9999 FEW015 BKN030",
-          "offset_h": -4,
+          "offset_h": -5,
           "wdir": 340,
           "wspd": 8
         },
         {
           "text": "BECMG 2604/2606 17006KT",
-          "offset_h": 0,
+          "offset_h": -1,
           "wdir": 170,
           "wspd": 6
         },
         {
           "text": "TEMPO 2615/2700 FEW003 BKN008",
-          "offset_h": 11,
+          "offset_h": 10,
           "wdir": null,
           "wspd": null
         }
       ],
-      "metar_raw": "METAR RJCC 260400Z 20003KT 110V250 9999 FEW015 SCT030 BKN/// 23/18 Q1009",
-      "metar_wdir": 200,
-      "metar_wspd": 3,
+      "metar_raw": "METAR RJCC 260500Z 21004KT 170V240 9999 FEW010 BKN030 BKN/// 23/19 Q1009",
+      "metar_wdir": 210,
+      "metar_wspd": 4,
       "metar_oat": 23,
       "metar_qnh": 1009,
       "hourly_oat": [
-        23,
         23,
         22,
         22,
@@ -1120,7 +1353,59 @@
         24,
         24,
         25,
+        24,
         24
+      ]
+    },
+    "KUL": {
+      "icao": "WMKK",
+      "issued": "2026-08-25T23:00:00.000Z",
+      "raw": "TAF WMKK 252300Z 2600/2706 VRB03KT 8000 FEW018 TEMPO 2600/2603 5000 TSRA FEW010 FEW017CB",
+      "groups": [
+        {
+          "text": "TAF WMKK 252300Z 2600/2706 VRB03KT 8000 FEW018",
+          "offset_h": -5,
+          "wdir": "VRB",
+          "wspd": 3
+        },
+        {
+          "text": "TEMPO 2600/2603 5000 TSRA FEW010 FEW017CB",
+          "offset_h": -5,
+          "wdir": null,
+          "wspd": null
+        }
+      ],
+      "metar_raw": "METAR WMKK 260500Z VRB03KT 9000 SCT018 31/24 Q1012 NOSIG",
+      "metar_wdir": "VRB",
+      "metar_wspd": 3,
+      "metar_oat": 31,
+      "metar_qnh": 1012,
+      "hourly_oat": [
+        30,
+        28,
+        28,
+        30,
+        30,
+        29,
+        28,
+        28,
+        27,
+        26,
+        26,
+        25,
+        25,
+        25,
+        25,
+        24,
+        23,
+        23,
+        23,
+        23,
+        25,
+        26,
+        28,
+        29,
+        30
       ]
     },
     "SGN": {
@@ -1130,30 +1415,29 @@
       "groups": [
         {
           "text": "TAF VVTS 252300Z 2600/2706 24012KT 9999 SCT017",
-          "offset_h": -4,
+          "offset_h": -5,
           "wdir": 240,
           "wspd": 12
         },
         {
           "text": "TEMPO 2603/2608 24015G26KT",
-          "offset_h": -1,
+          "offset_h": -2,
           "wdir": 240,
           "wspd": 15
         },
         {
           "text": "TEMPO 2608/2612 24015G28KT 5000 SHRA SCT015 FEW017CB",
-          "offset_h": 4,
+          "offset_h": 3,
           "wdir": 240,
           "wspd": 15
         }
       ],
-      "metar_raw": "METAR VVTS 260400Z 25013G25KT 210V270 9999 SCT025 FEW028TCU 32/26 Q1009 NOSIG",
-      "metar_wdir": 250,
-      "metar_wspd": 13,
+      "metar_raw": "METAR VVTS 260500Z 26016KT 9999 SCT025 FEW027CB 32/25 Q1009 TEMPO FM0530 TL0600 26016G30KT 4000 SHRA",
+      "metar_wdir": 260,
+      "metar_wspd": 16,
       "metar_oat": 32,
       "metar_qnh": 1009,
       "hourly_oat": [
-        32,
         33,
         31,
         27,
@@ -1177,190 +1461,8 @@
         27,
         28,
         30,
-        31
-      ]
-    },
-    "TPE": {
-      "icao": "RCTP",
-      "issued": "2026-08-25T23:00:00.000Z",
-      "raw": "TAF RCTP 252300Z 2600/2706 24008KT 9999 FEW015 BKN032 TEMPO 2604/2610 26013KT FEW010 BKN022 BECMG 2616/2618 24015KT TEMPO 2700/2706 24020G30KT FEW010 FEW015TCU BKN020",
-      "groups": [
-        {
-          "text": "TAF RCTP 252300Z 2600/2706 24008KT 9999 FEW015 BKN032",
-          "offset_h": -4,
-          "wdir": 240,
-          "wspd": 8
-        },
-        {
-          "text": "TEMPO 2604/2610 26013KT FEW010 BKN022",
-          "offset_h": 0,
-          "wdir": 260,
-          "wspd": 13
-        },
-        {
-          "text": "BECMG 2616/2618 24015KT",
-          "offset_h": 12,
-          "wdir": 240,
-          "wspd": 15
-        },
-        {
-          "text": "TEMPO 2700/2706 24020G30KT FEW010 FEW015TCU BKN020",
-          "offset_h": 20,
-          "wdir": 240,
-          "wspd": 20
-        }
-      ],
-      "metar_raw": "METAR RCTP 260400Z 29010KT 9999 FEW015 SCT120 BKN200 31/27 Q1005 NOSIG RMK A2970",
-      "metar_wdir": 290,
-      "metar_wspd": 10,
-      "metar_oat": 31,
-      "metar_qnh": 1005,
-      "hourly_oat": [
-        28,
-        29,
-        29,
-        28,
-        28,
-        28,
-        27,
-        26,
-        27,
-        27,
-        26,
-        26,
-        27,
-        27,
-        27,
-        27,
-        27,
-        27,
-        27,
-        27,
-        28,
-        28,
-        29,
-        30,
-        30
-      ]
-    },
-    "GMP": {
-      "icao": "RKSS",
-      "issued": "2026-08-25T23:00:00.000Z",
-      "raw": "TAF RKSS 252300Z 2600/2706 28006KT 9999 SCT030 TX31/2606Z TN24/2621Z TX32/2706Z TEMPO 2604/2606 6000 -RA FEW010 BKN030 OVC070 BECMG 2613/2615 06005KT 6000 TEMPO 2618/2703 35005KT BECMG 2704/2706 27006KT 9999",
-      "groups": [
-        {
-          "text": "TAF RKSS 252300Z 2600/2706 28006KT 9999 SCT030 TX31/2606Z TN24/2621Z TX32/2706Z",
-          "offset_h": -4,
-          "wdir": 280,
-          "wspd": 6
-        },
-        {
-          "text": "TEMPO 2604/2606 6000 -RA FEW010 BKN030 OVC070",
-          "offset_h": 0,
-          "wdir": null,
-          "wspd": null
-        },
-        {
-          "text": "BECMG 2613/2615 06005KT 6000",
-          "offset_h": 9,
-          "wdir": 60,
-          "wspd": 5
-        },
-        {
-          "text": "TEMPO 2618/2703 35005KT",
-          "offset_h": 14,
-          "wdir": 350,
-          "wspd": 5
-        },
-        {
-          "text": "BECMG 2704/2706 27006KT 9999",
-          "offset_h": 24,
-          "wdir": 270,
-          "wspd": 6
-        }
-      ],
-      "metar_raw": "METAR RKSS 260400Z 29007KT 260V330 9999 BKN030 BKN200 31/25 Q1009 NOSIG",
-      "metar_wdir": 290,
-      "metar_wspd": 7,
-      "metar_oat": 31,
-      "metar_qnh": 1009,
-      "hourly_oat": [
-        30,
-        30,
-        30,
-        29,
-        29,
-        28,
-        27,
-        26,
-        26,
-        25,
-        25,
-        25,
-        24,
-        24,
-        24,
-        24,
-        23,
-        23,
-        23,
-        24,
-        25,
-        26,
-        27,
-        28,
-        29
-      ]
-    },
-    "CGK": {
-      "icao": "WIII",
-      "issued": "2026-08-25T23:00:00.000Z",
-      "raw": "TAF WIII 252300Z 2600/2706 11005KT 4000 HZ SCT020 BECMG 2602/2604 04011KT 8000 NSW",
-      "groups": [
-        {
-          "text": "TAF WIII 252300Z 2600/2706 11005KT 4000 HZ SCT020",
-          "offset_h": -4,
-          "wdir": 110,
-          "wspd": 5
-        },
-        {
-          "text": "BECMG 2602/2604 04011KT 8000 NSW",
-          "offset_h": -2,
-          "wdir": 40,
-          "wspd": 11
-        }
-      ],
-      "metar_raw": "METAR WIII 260400Z 09007KT 050V150 9999 SCT020 33/21 Q1013 NOSIG",
-      "metar_wdir": 90,
-      "metar_wspd": 7,
-      "metar_oat": 33,
-      "metar_qnh": 1013,
-      "hourly_oat": [
-        33,
-        34,
-        33,
-        32,
-        32,
         31,
-        30,
-        28,
-        28,
-        26,
-        26,
-        26,
-        26,
-        26,
-        26,
-        25,
-        25,
-        25,
-        25,
-        24,
-        26,
-        28,
-        30,
-        31,
-        33
+        32
       ]
     },
     "BKK": {
@@ -1370,25 +1472,24 @@
       "groups": [
         {
           "text": "TAF VTBS 252300Z 2600/2706 24008KT 9999 FEW020",
-          "offset_h": -4,
+          "offset_h": -5,
           "wdir": 240,
           "wspd": 8
         },
         {
           "text": "TEMPO 2606/2610 -TSRA FEW018CB SCT030 BKN080",
-          "offset_h": 2,
+          "offset_h": 1,
           "wdir": null,
           "wspd": null
         }
       ],
-      "metar_raw": "METAR VTBS 260400Z 27011KT 230V300 9999 FEW030 32/22 Q1009 NOSIG",
-      "metar_wdir": 270,
+      "metar_raw": "METAR VTBS 260500Z 21011KT 9999 FEW030 32/23 Q1008 NOSIG",
+      "metar_wdir": 210,
       "metar_wspd": 11,
       "metar_oat": 32,
-      "metar_qnh": 1009,
+      "metar_qnh": 1008,
       "hourly_oat": [
         30,
-        30,
         29,
         28,
         29,
@@ -1411,6 +1512,7 @@
         29,
         30,
         30,
+        31,
         31
       ]
     },
@@ -1421,146 +1523,46 @@
       "groups": [
         {
           "text": "TAF VVNB 252300Z 2600/2624 06005KT 9999 SCT015",
-          "offset_h": -4,
+          "offset_h": -5,
           "wdir": 60,
           "wspd": 5
         },
         {
           "text": "TEMPO 2600/2604 4000 SHRA SCT012 FEW023TCU",
-          "offset_h": -4,
+          "offset_h": -5,
           "wdir": null,
           "wspd": null
         },
         {
           "text": "TEMPO 2609/2613 3500 TSRA BKN010 FEW027CB",
-          "offset_h": 5,
+          "offset_h": 4,
           "wdir": null,
           "wspd": null
         },
         {
           "text": "TEMPO 2618/2624 3200 SHRA BKN010 FEW020TCU",
-          "offset_h": 14,
+          "offset_h": 13,
           "wdir": null,
           "wspd": null
         }
       ],
-      "metar_raw": "METAR VVNB 260400Z 28008KT 9999 BKN023 BKN031 OVC065 29/26 Q1003 TEMPO 4000 RA",
-      "metar_wdir": 280,
-      "metar_wspd": 8,
-      "metar_oat": 29,
-      "metar_qnh": 1003,
-      "hourly_oat": [
-        30,
-        30,
-        30,
-        31,
-        30,
-        29,
-        29,
-        29,
-        28,
-        28,
-        28,
-        27,
-        27,
-        26,
-        26,
-        25,
-        25,
-        25,
-        25,
-        25,
-        26,
-        27,
-        28,
-        29,
-        30
-      ]
-    },
-    "TSA": {
-      "icao": "RCSS",
-      "issued": "2026-08-25T23:00:00.000Z",
-      "raw": "TAF RCSS 252300Z 2600/2624 27008KT 9999 FEW015 BKN032 TEMPO 2604/2610 27013G23KT FEW008 BKN016 BKN040",
-      "groups": [
-        {
-          "text": "TAF RCSS 252300Z 2600/2624 27008KT 9999 FEW015 BKN032",
-          "offset_h": -4,
-          "wdir": 270,
-          "wspd": 8
-        },
-        {
-          "text": "TEMPO 2604/2610 27013G23KT FEW008 BKN016 BKN040",
-          "offset_h": 0,
-          "wdir": 270,
-          "wspd": 13
-        }
-      ],
-      "metar_raw": "METAR RCSS 260400Z 30009KT 270V340 9999 FEW015 SCT040 BKN130 32/25 Q1004 NOSIG RMK 31009KT/R10 A2967",
+      "metar_raw": "METAR VVNB 260500Z 30008KT 9999 FEW011 SCT034 BKN082 30/27 Q1002 NOSIG",
       "metar_wdir": 300,
-      "metar_wspd": 9,
-      "metar_oat": 32,
-      "metar_qnh": 1004,
+      "metar_wspd": 8,
+      "metar_oat": 30,
+      "metar_qnh": 1002,
       "hourly_oat": [
         30,
-        30,
-        29,
-        28,
-        29,
-        28,
-        28,
-        27,
-        26,
-        26,
-        26,
-        26,
-        26,
-        26,
-        26,
-        26,
-        26,
-        26,
-        26,
-        27,
-        28,
         30,
         31,
-        32,
-        32
-      ]
-    },
-    "KUL": {
-      "icao": "WMKK",
-      "issued": "2026-08-25T23:00:00.000Z",
-      "raw": "TAF WMKK 252300Z 2600/2706 VRB03KT 8000 FEW018 TEMPO 2600/2603 5000 TSRA FEW010 FEW017CB",
-      "groups": [
-        {
-          "text": "TAF WMKK 252300Z 2600/2706 VRB03KT 8000 FEW018",
-          "offset_h": -4,
-          "wdir": "VRB",
-          "wspd": 3
-        },
-        {
-          "text": "TEMPO 2600/2603 5000 TSRA FEW010 FEW017CB",
-          "offset_h": -4,
-          "wdir": null,
-          "wspd": null
-        }
-      ],
-      "metar_raw": "METAR WMKK 260400Z 14004KT 060V230 9000 SCT018 30/25 Q1013 NOSIG",
-      "metar_wdir": 140,
-      "metar_wspd": 4,
-      "metar_oat": 30,
-      "metar_qnh": 1013,
-      "hourly_oat": [
         30,
-        30,
-        28,
-        28,
-        30,
-        30,
+        29,
+        29,
         29,
         28,
         28,
+        28,
+        27,
         27,
         26,
         26,
@@ -1568,15 +1570,13 @@
         25,
         25,
         25,
-        24,
-        23,
-        23,
-        23,
-        23,
         25,
         26,
+        27,
         28,
-        29
+        29,
+        30,
+        31
       ]
     }
   }
